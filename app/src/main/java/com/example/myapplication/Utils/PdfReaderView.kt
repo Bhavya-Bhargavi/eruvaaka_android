@@ -296,12 +296,14 @@ import androidx.compose.foundation.gestures.transformable
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.TextView
 
 class PdfReaderView @JvmOverloads constructor(
     context: Context,
-    private val pdfFile: File? = null,
+    private var pdfFile: File? = null,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
@@ -315,8 +317,17 @@ class PdfReaderView @JvmOverloads constructor(
         pdfFile?.let { renderPdf(it) }
     }
 
+    fun setPdfFile(file: File) {
+        this.pdfFile = file
+        removeAllViews()
+        renderPdf(file)
+    }
+
     private fun renderPdf(file: File) {
-        if (!file.exists()) return
+        if (!file.exists() || file.length() == 0L) {
+            showError("PDF file does not exist or is empty.")
+            return
+        }
 
         try {
             val descriptor = ParcelFileDescriptor.open(
@@ -325,11 +336,25 @@ class PdfReaderView @JvmOverloads constructor(
             )
             val renderer = PdfRenderer(descriptor)
 
+            if (renderer.pageCount == 0) {
+                showError("PDF file contains no pages.")
+                renderer.close()
+                descriptor.close()
+                return
+            }
+
+            val displayMetrics = context.resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels
+
             for (i in 0 until renderer.pageCount) {
                 val page = renderer.openPage(i)
+                val scale = if (page.width > 0) (screenWidth.toFloat() / page.width.toFloat()).coerceAtLeast(1f) else 2f
+                val width = (page.width * scale).toInt().coerceAtLeast(1)
+                val height = (page.height * scale).toInt().coerceAtLeast(1)
+
                 val bitmap = Bitmap.createBitmap(
-                    page.width * 2,
-                    page.height * 2,
+                    width,
+                    height,
                     Bitmap.Config.ARGB_8888
                 )
                 bitmap.eraseColor(Color.WHITE)
@@ -344,6 +369,7 @@ class PdfReaderView @JvmOverloads constructor(
                         setMargins(0, 0, 0, 16)
                     }
                     adjustViewBounds = true
+                    scaleType = ImageView.ScaleType.FIT_CENTER
                     setImageBitmap(bitmap)
                 }
                 addView(imageView)
@@ -352,8 +378,20 @@ class PdfReaderView @JvmOverloads constructor(
             renderer.close()
             descriptor.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("PdfReaderView", "Error rendering PDF: ${file.absolutePath}", e)
+            showError("Failed to render PDF: ${e.message}")
         }
+    }
+
+    private fun showError(message: String) {
+        removeAllViews()
+        val textView = TextView(context).apply {
+            text = message
+            textSize = 16f
+            setTextColor(Color.RED)
+            setPadding(32, 32, 32, 32)
+        }
+        addView(textView)
     }
 }
 

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import okhttp3.ResponseBody
-import java.io.FileOutputStream
+
 
 class MediaViewModel : ViewModel() {
 
@@ -88,12 +88,18 @@ class MediaViewModel : ViewModel() {
             if (result.isSuccess) {
                 try {
                     val file = MagazineStorage(context).getMagazineFile("epaper.pdf")
-                    val inputStream = result.getOrNull()?.byteStream()
-                    val outputStream = FileOutputStream(file)
-                    inputStream?.copyTo(outputStream)
-                    inputStream?.close()
-                    outputStream.close()
-                    _downloadState.value = result // Indicates success
+                    val responseBody = result.getOrNull()
+                    if (responseBody != null) {
+                        val bytes = responseBody.bytes()
+                        if (bytes.isNotEmpty()) {
+                            file.writeBytes(bytes)
+                            _downloadState.value = result
+                        } else {
+                            _downloadState.value = Result.failure(Exception("Downloaded EPaper file was empty"))
+                        }
+                    } else {
+                        _downloadState.value = Result.failure(Exception("Empty response body"))
+                    }
                 } catch (e: Exception) {
                     _downloadState.value = Result.failure(e)
                 }
@@ -143,12 +149,18 @@ class MediaViewModel : ViewModel() {
             if (result.isSuccess) {
                 try {
                     val file = MagazineStorage(context).getMagazineFile("eru_vaaka_latest.pdf")
-                    val inputStream = result.getOrNull()?.byteStream()
-                    val outputStream = FileOutputStream(file)
-                    inputStream?.copyTo(outputStream)
-                    inputStream?.close()
-                    outputStream.close()
-                    _downloadState.value = result // Indicates success
+                    val responseBody = result.getOrNull()
+                    if (responseBody != null) {
+                        val bytes = responseBody.bytes()
+                        if (bytes.isNotEmpty()) {
+                            file.writeBytes(bytes)
+                            _downloadState.value = result
+                        } else {
+                            _downloadState.value = Result.failure(Exception("Downloaded E-Magazine file was empty"))
+                        }
+                    } else {
+                        _downloadState.value = Result.failure(Exception("Empty response body"))
+                    }
                 } catch (e: Exception) {
                     _downloadState.value = Result.failure(e)
                 }

@@ -381,9 +381,9 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     val fileMag = MagazineStorage(context).getMagazineFile("eru_vaaka_latest.pdf")
                     val fileEpaper = MagazineStorage(context).getMagazineFile("epaper.pdf")
                     
-                    if (fileMag.exists() && selectedItem == "Magazine") {
+                    if (selectedItem == "Magazine" && fileMag.exists() && fileMag.length() > 0) {
                         currentScreen = ScreenType.PDF_VIEWER
-                    } else if (fileEpaper.exists() && selectedItem == "E-Paper") {
+                    } else if (fileEpaper.exists() && fileEpaper.length() > 0) {
                         currentScreen = ScreenType.E_PAPER_VIEWER
                     }
                 } else if (res.isFailure) {
@@ -632,7 +632,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                             val file = MagazineStorage(context)
                                                 .getMagazineFile("epaper.pdf")
 
-                                            if (file.exists()) {
+                                            if (file.exists() && file.length() > 0) {
                                                 currentScreen = ScreenType.E_PAPER_VIEWER
                                             } else {
                                                 Toast.makeText(
@@ -794,7 +794,11 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             val file = MagazineStorage(context)
                                 .getMagazineFile("epaper.pdf")
 
-                            PdfViewerScreen(file = file)
+                            if (file.exists() && file.length() > 0) {
+                                PdfViewerScreen(file = file)
+                            } else {
+                                Text("E-Paper PDF not found or empty")
+                            }
                         }
                         ScreenType.NEWS -> {
                             var selectedTab by remember { mutableStateOf(0) }
