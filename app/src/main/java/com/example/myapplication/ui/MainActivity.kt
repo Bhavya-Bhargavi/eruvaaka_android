@@ -11,6 +11,7 @@ import android.text.Html
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
@@ -366,6 +367,24 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         var isSubscrptnClick by remember { mutableStateOf(false) }
         var currentScreen by remember { mutableStateOf(ScreenType.HOME) }
 
+        LaunchedEffect(currentScreen) {
+            selectedItem = when (currentScreen) {
+                ScreenType.HOME -> "Home"
+                ScreenType.CONTACTUS -> "Contact Us"
+                ScreenType.PROFILE -> "Profile"
+                ScreenType.SUBSCRIPTION -> "Subscription"
+                ScreenType.BOOKS -> "Books"
+                ScreenType.NEWS -> "News"
+                ScreenType.FORUMS -> "Forums"
+                ScreenType.PDF_VIEWER -> "Magazine"
+                ScreenType.E_PAPER_VIEWER -> "E-Paper"
+            }
+        }
+
+        BackHandler(enabled = currentScreen != ScreenType.HOME) {
+            currentScreen = ScreenType.HOME
+        }
+
         val profile by pProfileViewModel.profile.collectAsState()
         val downloadState by mediaViewModel.downloadState.collectAsState()
         var showProfileDialog by rememberSaveable {
@@ -456,8 +475,6 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         phoneNumber = profile.phone,
                     onItemClick = { item ->
 
-                        selectedItem = item
-
                         // Handle navigation logic
                         when (item) {
                             "Home" -> currentScreen = ScreenType.HOME
@@ -492,9 +509,28 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             "Profile" -> currentScreen = ScreenType.PROFILE
                             "Books" -> currentScreen = ScreenType.BOOKS
                             "Forums" -> currentScreen = ScreenType.FORUMS
+                            "E-Paper" -> {
+                                val file = MagazineStorage(context)
+                                    .getMagazineFile("epaper.pdf")
+
+                                if (file.exists() && file.length() > 0) {
+                                    currentScreen = ScreenType.E_PAPER_VIEWER
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Downloading E-Paper...",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    scope.launch {
+                                        val token = userPreferences.getToken() ?: ""
+                                        mediaViewModel.downloadEPaper(token = token, context = context)
+                                    }
+                                }
+                            }
+                            "News" -> currentScreen = ScreenType.NEWS
                             else -> {
                                 // category clicked
-                                println("Category: $item")
+                                currentScreen = ScreenType.NEWS
                             }
                         }
 
