@@ -54,6 +54,23 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val contactState: StateFlow<ContactState> =
         _contactState.asStateFlow()
 
+    fun logout(onComplete: (Boolean) -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val token = userPreferences.getToken() ?: ""
+                if (token.isNotBlank()) {
+                    val result = repository.logout(token)
+                    Log.d("LoginViewModel", "Logout API result: ${result.isSuccess}")
+                }
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Logout exception", e)
+            } finally {
+                userPreferences.clearUserData()
+                onComplete(true)
+            }
+        }
+    }
+
     fun submitContact(
         name: String,
         phone: String,

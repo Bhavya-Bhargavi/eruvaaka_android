@@ -35,8 +35,9 @@ import retrofit2.http.Url
 
 interface ApiInterface {
 
+    @Headers("Accept: application/json", "Content-Type: application/json")
     @POST("api/auth/register")
-    suspend fun registerUser(@Header("Authorization") contentType: String,
+    suspend fun registerUser(
         @Body request: RegistrationRequest
     ): Response<RegistrationResponse>
 
@@ -91,9 +92,10 @@ interface ApiInterface {
         @Path("userId") userId: Int
     ): Response<JsonElement>
 
-    @POST("api/auth/resend-otp")
+    @POST("api/authresend-otp")
     suspend fun resendOtp(@Body request: LoginRequest): Response<JsonElement>
 
+    @Headers("Accept: application/json", "Content-Type: application/json")
     @POST("api/auth/logout")
     suspend fun logout(@Header("Authorization") token: String): Response<JsonElement>
 

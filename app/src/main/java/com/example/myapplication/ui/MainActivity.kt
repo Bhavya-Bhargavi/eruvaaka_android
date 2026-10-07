@@ -1,6 +1,7 @@
 package com.example.myapplication.ui
 
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -34,10 +35,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Agriculture
+import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.filled.CardMembership
+import androidx.compose.material.icons.filled.ContactMail
+import androidx.compose.material.icons.filled.Forum
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LibraryBooks
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -113,7 +124,8 @@ val staticMenus = listOf(
     "Contact Us",
     "Profile",
     "Books",
-    "Forums"
+    "Forums",
+    "Logout"
 )
 
 enum class ScreenType {
@@ -510,6 +522,16 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             "Profile" -> currentScreen = ScreenType.PROFILE
                             "Books" -> currentScreen = ScreenType.BOOKS
                             "Forums" -> currentScreen = ScreenType.FORUMS
+                            "Logout" -> {
+                                Toast.makeText(context, "Logging out...", Toast.LENGTH_SHORT).show()
+                                loginViewModel.logout {
+                                    val intent = Intent(context, LoginAct::class.java).apply {
+                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                    context.startActivity(intent)
+                                    (context as? Activity)?.finish()
+                                }
+                            }
                             "E-Paper" -> {
                                 val file = MagazineStorage(context)
                                     .getMagazineFile("epaper.pdf")
@@ -1197,6 +1219,18 @@ fun getMenuIcon(title: String): ImageVector {
 
         "పథకాలు" ->
             Icons.Default.AccountBalance
+
+        "Profile" ->
+            Icons.Default.Person
+
+        "Books" ->
+            Icons.Default.LibraryBooks
+
+        "Forums" ->
+            Icons.Default.Forum
+
+        "Logout" ->
+            Icons.AutoMirrored.Filled.Logout
 
         else ->
             Icons.Default.Menu

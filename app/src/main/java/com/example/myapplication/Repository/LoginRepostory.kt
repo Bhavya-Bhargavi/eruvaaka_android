@@ -7,6 +7,7 @@ import com.example.myapplication.Model.Response.ContactResponse
 import com.example.myapplication.Model.Response.VerifyOtpResponse
 import com.example.myapplication.Model.Response.LoginResponse
 import com.example.myapplication.Network.ApiInterface
+import com.google.gson.JsonElement
 
 
 class LoginRepository(
@@ -117,6 +118,21 @@ class LoginRepository(
 
         } catch (e: Exception) {
 
+            Result.failure(e)
+        }
+    }
+
+    suspend fun logout(token: String): Result<JsonElement> {
+        return try {
+            val authHeader = if (token.startsWith("Bearer ", ignoreCase = true)) token else "Bearer $token"
+            val response = apiInterface.logout(authHeader)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val errStr = response.errorBody()?.string() ?: response.message()
+                Result.failure(Exception("Logout failed: $errStr"))
+            }
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

@@ -137,8 +137,8 @@ fun RegistrationScreen(
                                 mandal = selectedMandal,
                                 pincode = pincode,
                                 crop_interests = selectedCrops
+                                    .map { it.replace(Regex("[^a-zA-Z0-9 ]"), "").trim() }
                                     .toList()
-                                    .takeIf { it.isNotEmpty() }
                             )
                         )
                     },

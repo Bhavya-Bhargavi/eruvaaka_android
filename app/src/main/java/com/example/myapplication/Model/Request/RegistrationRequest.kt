@@ -1,23 +1,16 @@
 package com.example.myapplication.Model.Request
 
+import com.google.gson.annotations.SerializedName
+
 data class RegistrationRequest(
-    val firstName: String,
-
-    val lastName: String,
-
-    val phone: String,
-
-    val email: String?,
-
-    val password: String,
-
-    val state: String,
-
-    val district: String,
-
-    val mandal: String,
-
-    val pincode: String,
-
-    val crop_interests: List<String>?
+    @SerializedName("firstName") val firstName: String,
+    @SerializedName("lastName") val lastName: String,
+    @SerializedName("phone") val phone: String,
+    @SerializedName("password") val password: String,
+    @SerializedName("state") val state: String,
+    @SerializedName("district") val district: String,
+    @SerializedName("mandal") val mandal: String,
+    @SerializedName("pincode") val pincode: String,
+    @SerializedName("email") val email: String? = null,
+    @SerializedName("crop_interests") val crop_interests: List<String> = emptyList()
 )
