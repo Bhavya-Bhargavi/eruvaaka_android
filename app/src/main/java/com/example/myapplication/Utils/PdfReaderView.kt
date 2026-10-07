@@ -295,6 +295,7 @@ import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.util.Log
 import android.widget.ImageView
@@ -325,8 +326,39 @@ class PdfReaderView @JvmOverloads constructor(
 
     private fun renderPdf(file: File) {
         if (!file.exists() || file.length() == 0L) {
-            showError("PDF file does not exist or is empty.")
+            showError("File does not exist or is empty.")
             return
+        }
+
+        val magazineStorage = MagazineStorage(context)
+        if (!magazineStorage.isValidDocument(file)) {
+            file.delete()
+            showError("Invalid or corrupted file. Please re-download.")
+            return
+        }
+
+        // 1. Check if file is an Image (JPEG, PNG, WEBP, etc.)
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, options)
+        if (options.outWidth > 0 && options.outHeight > 0) {
+            try {
+                val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                if (bitmap != null) {
+                    val imageView = ImageView(context).apply {
+                        layoutParams = LayoutParams(
+                            LayoutParams.MATCH_PARENT,
+                            LayoutParams.WRAP_CONTENT
+                        )
+                        adjustViewBounds = true
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                        setImageBitmap(bitmap)
+                    }
+                    addView(imageView)
+                    return
+                }
+            } catch (e: Exception) {
+                Log.e("PdfReaderView", "Failed to render image file", e)
+            }
         }
 
         try {

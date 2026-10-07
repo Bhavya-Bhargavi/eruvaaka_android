@@ -81,7 +81,7 @@ class MediaRepository(private val api: ApiInterface) {
             "storage/private/eruvaaka1.pdf",
             "android_api/public/storage/app/private/eruvaaka1.pdf",
             "api/epapers/$publicationId/download",
-            "storage/app/private/1.pdf",
+            "storage/app/private/eruvaaka1.pdf",
             "api/download/eruvaaka1.pdf"
         )
 

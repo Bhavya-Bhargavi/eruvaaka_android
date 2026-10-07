@@ -397,12 +397,13 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 if (res.isSuccess) {
                     Toast.makeText(context, "Download Successful", Toast.LENGTH_SHORT).show()
                     // Re-check files and navigate. Since we just have 2, let's just trigger recompose or navigate
-                    val fileMag = MagazineStorage(context).getMagazineFile("eru_vaaka_latest.pdf")
-                    val fileEpaper = MagazineStorage(context).getMagazineFile("epaper.pdf")
+                    val storage = MagazineStorage(context)
+                    val isMagValid = storage.isMagazineDownloaded("eru_vaaka_latest.pdf")
+                    val isEpaperValid = storage.isMagazineDownloaded("epaper.pdf")
                     
-                    if (selectedItem == "Magazine" && fileMag.exists() && fileMag.length() > 0) {
+                    if (selectedItem == "Magazine" && isMagValid) {
                         currentScreen = ScreenType.PDF_VIEWER
-                    } else if (fileEpaper.exists() && fileEpaper.length() > 0) {
+                    } else if (isEpaperValid) {
                         currentScreen = ScreenType.E_PAPER_VIEWER
                     }
                 } else if (res.isFailure) {
@@ -649,10 +650,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                                     userPreferences.isSubscribed.first()
 
                                                 if (subscribed) {
-                                                    val file = MagazineStorage(context)
-                                                        .getMagazineFile("eru_vaaka_latest.pdf")
-
-                                                    if (file.exists()) {
+                                                    val storage = MagazineStorage(context)
+                                                    if (storage.isMagazineDownloaded("eru_vaaka_latest.pdf")) {
                                                         currentScreen = ScreenType.PDF_VIEWER
                                                     } else {
                                                         Toast.makeText(
@@ -671,10 +670,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                         }
 
                                         "E-Paper" -> {
-                                            val file = MagazineStorage(context)
-                                                .getMagazineFile("epaper.pdf")
-
-                                            if (file.exists() && file.length() > 0) {
+                                            val storage = MagazineStorage(context)
+                                            if (storage.isMagazineDownloaded("epaper.pdf")) {
                                                 currentScreen = ScreenType.E_PAPER_VIEWER
                                             } else {
                                                 Toast.makeText(
@@ -823,23 +820,23 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             }
                         }
                         ScreenType.PDF_VIEWER -> {
-                            val file = MagazineStorage(context)
-                                .getMagazineFile("eru_vaaka_latest.pdf")
+                            val storage = MagazineStorage(context)
+                            val file = storage.getMagazineFile("eru_vaaka_latest.pdf")
 
-                            if (file.exists()) {
+                            if (storage.isValidDocument(file)) {
                                 PdfViewerScreen(file = file)
                             } else {
-                                Text("Magazine PDF not found")
+                                Text("Magazine file not found or invalid.")
                             }
                         }
                         ScreenType.E_PAPER_VIEWER -> {
-                            val file = MagazineStorage(context)
-                                .getMagazineFile("epaper.pdf")
+                            val storage = MagazineStorage(context)
+                            val file = storage.getMagazineFile("epaper.pdf")
 
-                            if (file.exists() && file.length() > 0) {
+                            if (storage.isValidDocument(file)) {
                                 PdfViewerScreen(file = file)
                             } else {
-                                Text("E-Paper PDF not found or empty")
+                                Text("E-Paper file not found or invalid.")
                             }
                         }
                         ScreenType.NEWS -> {
