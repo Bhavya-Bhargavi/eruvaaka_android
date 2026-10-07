@@ -76,6 +76,31 @@ class MediaRepository(private val api: ApiInterface) {
     suspend fun downloadEPaper(token: String, publicationId: Int): Result<ResponseBody> {
         val authHeader = formatToken(token)
 
+        val candidateUrls = listOf(
+            "storage/app/private/eruvaaka1.pdf",
+            "storage/private/eruvaaka1.pdf",
+            "android_api/public/storage/app/private/eruvaaka1.pdf",
+            "api/epapers/$publicationId/download",
+            "storage/app/private/1.pdf",
+            "api/download/eruvaaka1.pdf"
+        )
+
+        for (url in candidateUrls) {
+            try {
+                Log.d("MediaRepository", "Trying download EPaper candidate URL: $url")
+                val response = api.downloadFileUrl(authHeader, url)
+                if (response.isSuccessful && response.body() != null) {
+                    val contentType = response.headers()["Content-Type"] ?: ""
+                    Log.d("MediaRepository", "Success on EPaper $url, Content-Type: $contentType")
+                    return Result.success(response.body()!!)
+                } else {
+                    Log.e("MediaRepository", "Failed EPaper $url: HTTP ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("MediaRepository", "Error on EPaper candidate $url", e)
+            }
+        }
+
         try {
             val response = api.downloadEPaperApi(authHeader, publicationId)
             if (response.isSuccessful && response.body() != null) {
@@ -92,17 +117,42 @@ class MediaRepository(private val api: ApiInterface) {
                 Result.success(response.body()!!)
             } else {
                 val errStr = response.errorBody()?.string() ?: response.message()
-                Log.e("MediaRepository", "downloadEPaper failed: HTTP ${response.code()} - $errStr")
+                Log.e("MediaRepository", "downloadEPaper legacy failed: HTTP ${response.code()} - $errStr")
                 Result.failure(Exception("Failed to download epaper: HTTP ${response.code()}"))
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "downloadEPaper exception", e)
+            Log.e("MediaRepository", "downloadEPaper legacy exception", e)
             Result.failure(e)
         }
     }
 
     suspend fun downloadEMagazine(token: String, publicationId: Int): Result<ResponseBody> {
         val authHeader = formatToken(token)
+
+        val candidateUrls = listOf(
+            "storage/app/private/eruvaaka1.pdf",
+            "storage/private/eruvaaka1.pdf",
+            "android_api/public/storage/app/private/eruvaaka1.pdf",
+            "api/emagazines/$publicationId/download",
+            "storage/app/private/1.pdf",
+            "api/download/eruvaaka1.pdf"
+        )
+
+        for (url in candidateUrls) {
+            try {
+                Log.d("MediaRepository", "Trying download EMagazine candidate URL: $url")
+                val response = api.downloadFileUrl(authHeader, url)
+                if (response.isSuccessful && response.body() != null) {
+                    val contentType = response.headers()["Content-Type"] ?: ""
+                    Log.d("MediaRepository", "Success on EMagazine $url, Content-Type: $contentType")
+                    return Result.success(response.body()!!)
+                } else {
+                    Log.e("MediaRepository", "Failed EMagazine $url: HTTP ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("MediaRepository", "Error on EMagazine candidate $url", e)
+            }
+        }
 
         try {
             val response = api.downloadEMagazineApi(authHeader, publicationId)
@@ -120,11 +170,11 @@ class MediaRepository(private val api: ApiInterface) {
                 Result.success(response.body()!!)
             } else {
                 val errStr = response.errorBody()?.string() ?: response.message()
-                Log.e("MediaRepository", "downloadEMagazine failed: HTTP ${response.code()} - $errStr")
+                Log.e("MediaRepository", "downloadEMagazine legacy failed: HTTP ${response.code()} - $errStr")
                 Result.failure(Exception("Failed to download emagazine: HTTP ${response.code()}"))
             }
         } catch (e: Exception) {
-            Log.e("MediaRepository", "downloadEMagazine exception", e)
+            Log.e("MediaRepository", "downloadEMagazine legacy exception", e)
             Result.failure(e)
         }
     }
