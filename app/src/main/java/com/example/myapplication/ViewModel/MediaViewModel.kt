@@ -48,6 +48,33 @@ class MediaViewModel : ViewModel() {
         }
     }
 
+    fun downloadPdfFromUrl(url: String, fileName: String, token: String? = null, context: Context) {
+        viewModelScope.launch {
+            val result = repository.downloadFromUrl(url, token)
+            if (result.isSuccess) {
+                try {
+                    val file = MagazineStorage(context).getMagazineFile(fileName)
+                    val responseBody = result.getOrNull()
+                    if (responseBody != null) {
+                        val bytes = responseBody.bytes()
+                        if (bytes.isNotEmpty()) {
+                            file.writeBytes(bytes)
+                            _downloadState.value = result
+                        } else {
+                            _downloadState.value = Result.failure(Exception("Downloaded PDF file was empty"))
+                        }
+                    } else {
+                        _downloadState.value = Result.failure(Exception("Empty response body"))
+                    }
+                } catch (e: Exception) {
+                    _downloadState.value = Result.failure(e)
+                }
+            } else {
+                _downloadState.value = result
+            }
+        }
+    }
+
     fun downloadEPaper(token: String, publicationId: Int = 1, context: Context) {
         viewModelScope.launch {
             var pubId = publicationId

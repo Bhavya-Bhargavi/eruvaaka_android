@@ -56,9 +56,37 @@ class MediaRepository(private val api: ApiInterface) {
         }
     }
 
-    suspend fun downloadEPaper(token: String, publicationId: Int): Result<ResponseBody> {
+    suspend fun downloadFromUrl(url: String, token: String? = null): Result<ResponseBody> {
         return try {
-            val authHeader = formatToken(token)
+            val authHeader = token?.let { formatToken(it) }
+            val response = api.downloadFileUrl(authHeader, url)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val errStr = response.errorBody()?.string() ?: response.message()
+                Log.e("MediaRepository", "downloadFromUrl failed ($url): HTTP ${response.code()} - $errStr")
+                Result.failure(Exception("Failed to download from URL: HTTP ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "downloadFromUrl exception ($url)", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun downloadEPaper(token: String, publicationId: Int): Result<ResponseBody> {
+        val authHeader = formatToken(token)
+
+        try {
+            val response = api.downloadEPaperApi(authHeader, publicationId)
+            if (response.isSuccessful && response.body() != null) {
+                return Result.success(response.body()!!)
+            }
+            Log.e("MediaRepository", "downloadEPaperApi HTTP ${response.code()}")
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "downloadEPaperApi exception", e)
+        }
+
+        return try {
             val response = api.downloadEPaper(authHeader, publicationId)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
@@ -74,8 +102,19 @@ class MediaRepository(private val api: ApiInterface) {
     }
 
     suspend fun downloadEMagazine(token: String, publicationId: Int): Result<ResponseBody> {
+        val authHeader = formatToken(token)
+
+        try {
+            val response = api.downloadEMagazineApi(authHeader, publicationId)
+            if (response.isSuccessful && response.body() != null) {
+                return Result.success(response.body()!!)
+            }
+            Log.e("MediaRepository", "downloadEMagazineApi HTTP ${response.code()}")
+        } catch (e: Exception) {
+            Log.e("MediaRepository", "downloadEMagazineApi exception", e)
+        }
+
         return try {
-            val authHeader = formatToken(token)
             val response = api.downloadEMagazine(authHeader, publicationId)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)

@@ -116,6 +116,18 @@ interface ApiInterface {
     @GET("api/epapers")
     suspend fun getEPapers(): Response<JsonElement>
 
+    @GET
+    suspend fun downloadFileUrl(
+        @Header("Authorization") token: String? = null,
+        @Url url: String
+    ): Response<ResponseBody>
+
+    @GET("api/epapers/{publicationid}/download")
+    suspend fun downloadEPaperApi(
+        @Header("Authorization") token: String,
+        @Path("publicationid") publicationId: Int
+    ): Response<ResponseBody>
+
     @GET("/android_api/epapers/{publicationid}/download")
     suspend fun downloadEPaper(
         @Header("Authorization") token: String,
@@ -124,6 +136,12 @@ interface ApiInterface {
 
     @GET("api/emagazines")
     suspend fun getEMagazines(): Response<JsonElement>
+
+    @GET("api/emagazines/{publicationid}/download")
+    suspend fun downloadEMagazineApi(
+        @Header("Authorization") token: String,
+        @Path("publicationid") publicationId: Int
+    ): Response<ResponseBody>
 
     @GET("/android_api/emagazines/{publicationid}/download")
     suspend fun downloadEMagazine(
