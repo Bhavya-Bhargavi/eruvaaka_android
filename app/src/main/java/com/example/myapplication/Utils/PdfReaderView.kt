@@ -1139,27 +1139,43 @@ private class PdfRendererManager(
 ) {
 
     private var descriptor: ParcelFileDescriptor? = null
-
     private var renderer: PdfRenderer? = null
+    private var isImage = false
 
     init {
-
-        descriptor = ParcelFileDescriptor.open(
-            pdfFile,
-            ParcelFileDescriptor.MODE_READ_ONLY
-        )
-
-        renderer = PdfRenderer(descriptor!!)
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(pdfFile.absolutePath, options)
+        if (options.outWidth > 0 && options.outHeight > 0) {
+            isImage = true
+        } else {
+            try {
+                descriptor = ParcelFileDescriptor.open(
+                    pdfFile,
+                    ParcelFileDescriptor.MODE_READ_ONLY
+                )
+                renderer = PdfRenderer(descriptor!!)
+            } catch (e: Exception) {
+                Log.e("PdfRendererManager", "Failed to open PDF descriptor", e)
+            }
+        }
     }
 
     fun pageCount(): Int {
-
+        if (isImage) return 1
         return renderer?.pageCount ?: 0
     }
 
     fun renderPage(
         pageIndex: Int
     ): Bitmap? {
+        if (isImage) {
+            return try {
+                BitmapFactory.decodeFile(pdfFile.absolutePath)
+            } catch (e: Exception) {
+                Log.e("PdfRendererManager", "Failed to decode image file", e)
+                null
+            }
+        }
 
         val pdfRenderer = renderer
             ?: return null
@@ -1171,42 +1187,39 @@ private class PdfRendererManager(
             return null
         }
 
-        val page = pdfRenderer.openPage(pageIndex)
+        return try {
+            val page = pdfRenderer.openPage(pageIndex)
 
-        /*
-         * Render at higher resolution
-         * for better zoom quality.
-         */
-        val scale = 2f
+            val scale = 2f
 
-        val width =
-            (page.width * scale).toInt()
+            val width = (page.width * scale).toInt().coerceAtLeast(1)
+            val height = (page.height * scale).toInt().coerceAtLeast(1)
 
-        val height =
-            (page.height * scale).toInt()
+            val bitmap = Bitmap.createBitmap(
+                width,
+                height,
+                Bitmap.Config.ARGB_8888
+            )
 
-        val bitmap = Bitmap.createBitmap(
-            width,
-            height,
-            Bitmap.Config.ARGB_8888
-        )
+            bitmap.eraseColor(Color.WHITE)
 
-        bitmap.eraseColor(Color.WHITE)
+            page.render(
+                bitmap,
+                null,
+                null,
+                PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
+            )
 
-        page.render(
-            bitmap,
-            null,
-            null,
-            PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-        )
+            page.close()
 
-        page.close()
-
-        return bitmap
+            bitmap
+        } catch (e: Exception) {
+            Log.e("PdfRendererManager", "Error rendering page $pageIndex", e)
+            null
+        }
     }
 
     fun close() {
-
         renderer?.close()
         renderer = null
 

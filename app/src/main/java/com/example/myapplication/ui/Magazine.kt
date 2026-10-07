@@ -1,15 +1,11 @@
 package com.example.myapplication.ui
 
 import android.content.Context
-import android.widget.ScrollView
 import android.widget.Toast
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.myapplication.Utils.MagazineStorage
-import com.example.myapplication.Utils.PdfReaderView
+import com.example.myapplication.Utils.PdfReaderScreen
 import com.example.myapplication.Utils.Screen
 import java.io.File
 
@@ -50,22 +46,11 @@ fun openMagazine(
 
 @Composable
 fun PdfViewerScreen(
-    file: File
+    file: File,
+    onBack: () -> Unit = {}
 ) {
-
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-
-            ScrollView(context).apply {
-
-                addView(
-                    PdfReaderView(
-                        context = context,
-                        pdfFile = file
-                    )
-                )
-            }
-        }
+    PdfReaderScreen(
+        pdfFile = file,
+        onBack = onBack
     )
 }
