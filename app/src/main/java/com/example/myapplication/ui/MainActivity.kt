@@ -593,7 +593,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 color = Color(0xFF2E7D32),
                                 textDecoration = TextDecoration.Underline,
                                 modifier = Modifier.clickable {
-                                    val url = "https://bhavya-bhargavi.github.io/AB-BRANDING/"
+                                    val url = "https://abinnovations369.github.io/portfolio_A-B/"
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                     context.startActivity(intent)
                                 }
