@@ -574,22 +574,28 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             Text("ACCESS E-MAGAZINE")
                         }
                         
-                        Box(
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 4.dp, end = 16.dp),
-                            contentAlignment = Alignment.CenterEnd
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Text(
+                                text = "crafted by ",
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
                             Text(
                                 text = "A&B Innovations",
                                 fontSize = 12.sp,
-                                color = Color.Gray,
-                                modifier = Modifier
-                                    .clickable {
-                                        val url = "https://bhavya-bhargavi.github.io/AB-BRANDING/"
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                        context.startActivity(intent)
-                                    }
+                                color = Color(0xFF2E7D32),
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier.clickable {
+                                    val url = "https://bhavya-bhargavi.github.io/AB-BRANDING/"
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    context.startActivity(intent)
+                                }
                             )
                         }
                     }
