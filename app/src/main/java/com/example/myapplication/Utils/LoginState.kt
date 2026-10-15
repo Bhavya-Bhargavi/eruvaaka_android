@@ -7,7 +7,7 @@ sealed class LoginState {
 
     data class Success(
         val message: String,
-        val mobile: String, val otp: String
+        val mobile: String/*, val otp: String*/
     ) : LoginState()
 
     data class Error(

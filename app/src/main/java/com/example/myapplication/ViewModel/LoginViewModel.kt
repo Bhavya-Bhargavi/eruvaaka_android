@@ -253,8 +253,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
                     _loginState.value =
                         LoginState.Success(
-                            message = response.message, mobile = phone,
-                            otp = response.otp
+                            message = response.message, mobile = phone
                         )
                 }
 

@@ -154,10 +154,10 @@ class LoginAct : ComponentActivity() {
                     }
 
                     is LoginState.Success -> {
-                        Log.e("otp", state.otp)
-                        expectedOtp = state.otp
+                        //Log.e("otp", state.otp)
+                        //expectedOtp = state.otp
 
-                        Toast.makeText(this@LoginAct, state.otp, Toast.LENGTH_LONG)
+                        //Toast.makeText(this@LoginAct, state.otp, Toast.LENGTH_LONG)
 
                         LaunchedEffect(state) {
                             navController.navigate(
@@ -320,7 +320,7 @@ class LoginAct : ComponentActivity() {
 
                     mobileNumber = mobileNumber,
 
-                    onOtpVerified = { expectedOtp
+                    onOtpVerified = { Otp->
 
                         //need to develop verify-otp api
                         /*
@@ -329,8 +329,8 @@ class LoginAct : ComponentActivity() {
                          * After backend confirms OTP,
                          * open MainActivity.
                          */
-
-                        loginViewModel.verifyOtp(mobileNumber, expectedOtp)
+                        Log.e("callbackotp", Otp)
+                        loginViewModel.verifyOtp(mobileNumber, Otp)
 
                     }
                 )
@@ -918,7 +918,7 @@ class LoginAct : ComponentActivity() {
                             Modifier.padding(20.dp)
                     ) {
 
-                        OutlinedTextField(
+                       /* OutlinedTextField(
 
                             value = otp,
 
@@ -932,7 +932,8 @@ class LoginAct : ComponentActivity() {
                                 if (
                                     filtered.length <= 6
                                 ) {
-                                    otp = filtered
+                                    expectedOtp = filtered
+
                                 }
                             },
 
@@ -964,7 +965,33 @@ class LoginAct : ComponentActivity() {
                                         cursorColor =
                                             Color(0xFF2E7D32)
                                     )
+                        )*/
+
+
+                        OutlinedTextField(
+                            value = otp,
+                            onValueChange = { value ->
+                                val filtered = value.filter { it.isDigit() }
+
+                                if (filtered.length <= 6) {
+                                    otp = filtered
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = {
+                                Text("Enter OTP")
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Number
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Color(0xFF2E7D32),
+                                cursorColor = Color(0xFF2E7D32)
+                            )
                         )
+
 
 
                         Spacer(
@@ -997,7 +1024,7 @@ class LoginAct : ComponentActivity() {
                                  * when API says OTP is valid.
                                  */
 
-                                onOtpVerified(expectedOtp)
+                                onOtpVerified(otp)
                             },
 
                             enabled =

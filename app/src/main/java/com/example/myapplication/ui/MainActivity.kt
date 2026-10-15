@@ -586,7 +586,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     Column(
                         modifier = Modifier.fillMaxWidth().padding(8.dp)
                     ) {
-                        Button(
+                        /*Button(
                             onClick = { },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
@@ -595,7 +595,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             )
                         ) {
                             Text("ACCESS E-MAGAZINE")
-                        }
+                        }*/
                         
                         Row(
                             modifier = Modifier
@@ -639,7 +639,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         Icon(
                             painter = rememberBitmapPainter(R.drawable.whatsapp),
                             contentDescription = "WhatsApp",
-                            tint = Color.White, modifier = Modifier.size(24.dp)
+                            tint = Color.White, modifier = Modifier.size(15.dp)
                         )
                     }
                     /* FloatingActionButton(onClick = {  val intent = Intent(Intent.ACTION_VIEW)

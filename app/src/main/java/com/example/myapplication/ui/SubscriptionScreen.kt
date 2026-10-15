@@ -73,7 +73,7 @@ fun SubscriptionScreen(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 20.dp) //20.dp
+            .padding(horizontal = 14.dp, vertical = 20.dp) //20.dp
 
     ) {
 
