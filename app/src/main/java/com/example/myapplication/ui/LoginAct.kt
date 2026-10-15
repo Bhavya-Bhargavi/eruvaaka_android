@@ -63,11 +63,8 @@ class LoginAct : ComponentActivity() {
             val userPreferences = UserPreferences(this@LoginAct)
 
             val token = userPreferences.token.first()
-            Log.e("token", token.toString())
-            Log.e("tokenInstall", token.toString())
 
             if (!token.isNullOrBlank()) {
-                Log.e(token, token.toString())
                 // Token available → directly open Dashboard
                 startActivity(
                     Intent(
@@ -315,23 +312,27 @@ class LoginAct : ComponentActivity() {
                 val pVerifyOtpState by loginViewModel.verifyOtpState
                     .collectAsState()
 
+                val resendOtpState by loginViewModel.resendOtpState
+                    .collectAsState()
+
+                LaunchedEffect(resendOtpState) {
+                    resendOtpState?.onSuccess {
+                        Toast.makeText(this@LoginAct, "OTP Resent Successfully", Toast.LENGTH_SHORT).show()
+                        loginViewModel.clearResendOtpState()
+                    }?.onFailure { error ->
+                        Toast.makeText(this@LoginAct, error.message ?: "Failed to resend OTP", Toast.LENGTH_SHORT).show()
+                        loginViewModel.clearResendOtpState()
+                    }
+                }
 
                 OtpScreen(
-
                     mobileNumber = mobileNumber,
-
-                    onOtpVerified = { Otp->
-
-                        //need to develop verify-otp api
-                        /*
-                         * OTP VALIDATION SUCCESS
-                         *
-                         * After backend confirms OTP,
-                         * open MainActivity.
-                         */
+                    onOtpVerified = { Otp ->
                         Log.e("callbackotp", Otp)
                         loginViewModel.verifyOtp(mobileNumber, Otp)
-
+                    },
+                    onResendOtpClick = { phone, otpVal ->
+                        loginViewModel.resendOtp(phone, otpVal)
                     }
                 )
 
@@ -461,7 +462,7 @@ class LoginAct : ComponentActivity() {
                      */
 
                     Text(
-                        text = "Welcome Back!",
+                        text = "LOGIN",
                         fontSize = 26.sp,
                         fontWeight =
                             FontWeight.Bold,
@@ -780,7 +781,8 @@ class LoginAct : ComponentActivity() {
     @Composable
     private fun OtpScreen(
         mobileNumber: String,
-        onOtpVerified: (String) -> Unit
+        onOtpVerified: (String) -> Unit,
+        onResendOtpClick: (String, String) -> Unit = { _, _ -> }
     ) {
 
         var otp by rememberSaveable {
@@ -1070,21 +1072,14 @@ class LoginAct : ComponentActivity() {
 
                         TextButton(
                             onClick = {
-
-                                /*
-                                 * Call resend OTP API
-                                 */
+                                onResendOtpClick(mobileNumber, otp)
                             },
-                            modifier =
-                                Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-
                             Text(
                                 text = "Resend OTP",
-                                color =
-                                    Color(0xFF2E7D32),
-                                fontWeight =
-                                    FontWeight.Bold
+                                color = Color(0xFF2E7D32),
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }

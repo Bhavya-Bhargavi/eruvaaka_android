@@ -136,4 +136,19 @@ class LoginRepository(
             Result.failure(e)
         }
     }
+
+    suspend fun resendOtp(phone: String, otp: String): Result<JsonElement> {
+        return try {
+            val request = VerifyOtpRequest(phone = phone, otp = otp)
+            val response = apiInterface.resendOtp(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val errStr = response.errorBody()?.string() ?: response.message()
+                Result.failure(Exception("Resend OTP failed: $errStr"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

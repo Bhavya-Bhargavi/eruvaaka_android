@@ -20,6 +20,7 @@ import com.example.myapplication.Utils.LoginState
 import com.example.myapplication.Utils.RegistrationState
 import com.example.myapplication.Utils.UserPreferences
 import com.example.myapplication.Utils.VerifyOtpState
+import com.google.gson.JsonElement
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,6 +46,22 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
     val verifyOtpState: StateFlow<VerifyOtpState> =
         _verifyOtpState.asStateFlow()
+
+    private val _resendOtpState =
+        MutableStateFlow<Result<JsonElement>?>(null)
+
+    val resendOtpState: StateFlow<Result<JsonElement>?> =
+        _resendOtpState.asStateFlow()
+
+    fun resendOtp(phone: String, otp: String) {
+        viewModelScope.launch {
+            _resendOtpState.value = repository.resendOtp(phone = phone, otp = otp)
+        }
+    }
+
+    fun clearResendOtpState() {
+        _resendOtpState.value = null
+    }
 
     private val _contactState =
         MutableStateFlow<ContactState>(
@@ -143,8 +160,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     )
 
                 val token = userPreferences.token.first()
-
-                Log.e("token", token.toString())
 
 
                     _verifyOtpState.value = VerifyOtpState.Success(response)

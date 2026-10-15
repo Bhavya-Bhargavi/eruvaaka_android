@@ -30,7 +30,6 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
     fun createOrder(planId: String) {
         viewModelScope.launch {
             val token = userPreferences.getToken() ?: ""
-            Log.e("token", token)
             try {
                 val response = pApiInterface.createOrder("Bearer $token"
                     ,CreateOrderRequest(plan = planId)

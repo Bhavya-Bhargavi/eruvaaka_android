@@ -35,6 +35,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
+        freeCompilerArgs += listOf(
+            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.layout.ExperimentalLayoutApi"
+        )
     }
     buildFeatures {
         compose = true
@@ -65,8 +70,9 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.compose.material:material-icons-extended")
 
-    implementation("androidx.compose.material:material-icons-extended:<your-compose-version>")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
 }

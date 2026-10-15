@@ -30,14 +30,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Agriculture
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.CardMembership
@@ -97,6 +102,11 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.myapplication.Model.Response.BookItem
 import com.example.myapplication.Model.Response.ForumItem
@@ -355,7 +365,6 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
                             if (it.success) {
                                 lifecycleScope.launch {
-                                    Log.e("subscribe", "true")
                                     userPreferences.setSubscribed(true)
                                 }
                            }
@@ -497,7 +506,6 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                     val subscribed = userPreferences.isSubscribed.first()
 
                                     if (subscribed) {
-                                        Log.e("subscribed", "true")
                                         val file = MagazineStorage(context)
                                             .getMagazineFile("eru_vaaka_latest.pdf")
 
@@ -659,70 +667,79 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     when (currentScreen) {
 
                         ScreenType.HOME -> {
-                            EruvaakaMenuGrid(
-                                onMenuClick = { menu ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(bottom = 16.dp)
+                            ) {
+                                EruvaakaMenuGrid(
+                                    onMenuClick = { menu ->
 
-                                    when (menu) {
+                                        when (menu) {
 
-                                        "Magazine" -> {
-                                            // Navigate to Magazine
-                                            scope.launch {
-
-                                                val subscribed =
-                                                    userPreferences.isSubscribed.first()
-
-                                                if (subscribed) {
-                                                    val storage = MagazineStorage(context)
-                                                    if (storage.isMagazineDownloaded("eru_vaaka_latest.pdf")) {
-                                                        currentScreen = ScreenType.PDF_VIEWER
-                                                    } else {
-                                                        Toast.makeText(
-                                                            context,
-                                                            "Downloading Magazine...",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                        val token = userPreferences.getToken() ?: ""
-                                                        mediaViewModel.downloadEMagazine(token = token, context = context)
-                                                    }
-                                                } else {
-                                                    currentScreen = ScreenType.SUBSCRIPTION
-                                                }
-                                            }
-
-                                        }
-
-                                        "E-Paper" -> {
-                                            val storage = MagazineStorage(context)
-                                            if (storage.isMagazineDownloaded("epaper.pdf")) {
-                                                currentScreen = ScreenType.E_PAPER_VIEWER
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Downloading E-Paper...",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
+                                            "Magazine" -> {
+                                                // Navigate to Magazine
                                                 scope.launch {
-                                                    val token = userPreferences.getToken() ?: ""
-                                                    mediaViewModel.downloadEPaper(token = token, context = context)
+
+                                                    val subscribed =
+                                                        userPreferences.isSubscribed.first()
+
+                                                    if (subscribed) {
+                                                        val storage = MagazineStorage(context)
+                                                        if (storage.isMagazineDownloaded("eru_vaaka_latest.pdf")) {
+                                                            currentScreen = ScreenType.PDF_VIEWER
+                                                        } else {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Downloading Magazine...",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                            val token = userPreferences.getToken() ?: ""
+                                                            mediaViewModel.downloadEMagazine(token = token, context = context)
+                                                        }
+                                                    } else {
+                                                        currentScreen = ScreenType.SUBSCRIPTION
+                                                    }
                                                 }
+
                                             }
 
-                                        }
+                                            "E-Paper" -> {
+                                                val storage = MagazineStorage(context)
+                                                if (storage.isMagazineDownloaded("epaper.pdf")) {
+                                                    currentScreen = ScreenType.E_PAPER_VIEWER
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Downloading E-Paper...",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    scope.launch {
+                                                        val token = userPreferences.getToken() ?: ""
+                                                        mediaViewModel.downloadEPaper(token = token, context = context)
+                                                    }
+                                                }
 
-                                        "Books" -> {
-                                            currentScreen = ScreenType.BOOKS
-                                        }
+                                            }
 
-                                        "News" -> {
-                                            currentScreen = ScreenType.NEWS
-                                        }
+                                            "Books" -> {
+                                                currentScreen = ScreenType.BOOKS
+                                            }
 
-                                        "Forums" -> {
-                                            currentScreen = ScreenType.FORUMS
+                                            "News" -> {
+                                                currentScreen = ScreenType.NEWS
+                                            }
+
+                                            "Forums" -> {
+                                                currentScreen = ScreenType.FORUMS
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+
+                                HomeNewsFeed(mediaViewModel = mediaViewModel)
+                            }
                         }
 
                         ScreenType.SUBSCRIPTION -> {
@@ -1390,8 +1407,9 @@ fun TabsSection(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 
     val tabs = listOf("Latest", "Telangana", "AP", "Crops", "Market", "Schemes")
 
-    TabRow(
+    ScrollableTabRow(
         selectedTabIndex = selectedTab,
+        edgePadding = 12.dp,
         containerColor = Color.White,
         contentColor = Color(0xFF25D366) // selected indicator color
     ) {
@@ -1405,7 +1423,9 @@ fun TabsSection(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                         color = if (selectedTab == index)
                             Color(0xFF25D366)   // ✅ selected tab text color
                         else
-                            Color.Gray         // ✅ unselected color
+                            Color.Gray,        // ✅ unselected color
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
             )
@@ -1461,38 +1481,106 @@ fun NewsFeed(
                 if (filteredItems.isNotEmpty()) {
                     items(filteredItems.size) { index ->
                         val item = filteredItems[index]
+                        val context = LocalContext.current
+                        val imageUrl = item.getEffectiveImageUrl()
+
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(8.dp),
-                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
+                                .clickable {
+                                    if (item.link.isNotBlank()) {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.link))
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Cannot open article link", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                            shape = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White)
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(
-                                    text = item.title,
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.Black
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = item.published_at,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = Html.fromHtml(item.description, Html.FROM_HTML_MODE_COMPACT).toString(),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.DarkGray
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "By ${item.creator}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.Gray
-                                )
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                // 1. IMAGE 1ST
+                                if (!imageUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(imageUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = item.title,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    if (item.categories.isNotEmpty()) {
+                                        LazyRow(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(bottom = 8.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(item.categories.take(4).size) { catIdx ->
+                                                val cat = item.categories[catIdx]
+                                                Surface(
+                                                    color = Color(0xFFE8F5E9),
+                                                    shape = RoundedCornerShape(6.dp)
+                                                ) {
+                                                    Text(
+                                                        text = cat,
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF2E7D32),
+                                                        maxLines = 1,
+                                                        softWrap = false,
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    // 2. HEADING
+                                    Text(
+                                        text = item.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color(0xFF1B231B),
+                                        lineHeight = 24.sp
+                                    )
+
+                                    // 3. 5-6 LINES CONTENT
+                                    val cleanDesc = item.getCleanDescription()
+                                    if (cleanDesc.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = cleanDesc,
+                                            fontSize = 14.sp,
+                                            color = Color.DarkGray,
+                                            maxLines = 6,
+                                            overflow = TextOverflow.Ellipsis,
+                                            lineHeight = 20.sp
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    // 4. HYPERLINK
+                                    Text(
+                                        text = "Read Full Article →",
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF2E7D32),
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.align(Alignment.End)
+                                    )
+                                }
                             }
                         }
                     }
@@ -1520,6 +1608,149 @@ fun NewsFeed(
                     color = Color.Red
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun HomeNewsFeed(
+    mediaViewModel: MediaViewModel = viewModel()
+) {
+    val newsState by mediaViewModel.newsState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        mediaViewModel.fetchNews()
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Latest News",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF00695C)
+            )
+        }
+
+        val newsResult = newsState
+        if (newsResult == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color(0xFF25D366))
+            }
+        } else if (newsResult.isSuccess) {
+            val newsResponse = newsResult.getOrNull()
+            val items = newsResponse?.items ?: emptyList()
+
+            if (items.isNotEmpty()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items.forEach { item ->
+                        val imageUrl = item.getEffectiveImageUrl()
+                        val cleanDesc = item.getCleanDescription()
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .clickable {
+                                    if (item.link.isNotBlank()) {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.link))
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            Toast.makeText(context, "Cannot open article link", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                },
+                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                        ) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                // 1. IMAGE 1ST
+                                if (!imageUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(imageUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = item.title,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    // 2. HEADING
+                                    Text(
+                                        text = item.title,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color(0xFF1B231B),
+                                        lineHeight = 24.sp
+                                    )
+
+                                    // 3. 3-4 LINES CONTENT
+                                    if (cleanDesc.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = cleanDesc,
+                                            fontSize = 14.sp,
+                                            color = Color.DarkGray,
+                                            maxLines = 4,
+                                            overflow = TextOverflow.Ellipsis,
+                                            lineHeight = 20.sp
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    // 4. HYPERLINK
+                                    Text(
+                                        text = "Read Full Article →",
+                                        fontSize = 13.sp,
+                                        color = Color(0xFF2E7D32),
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.align(Alignment.End)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                Text(
+                    text = "No news available at the moment.",
+                    modifier = Modifier.padding(16.dp),
+                    color = Color.Gray
+                )
+            }
+        } else {
+            Text(
+                text = "Failed to load news feed.",
+                modifier = Modifier.padding(16.dp),
+                color = Color.Red
+            )
         }
     }
 }
@@ -1788,83 +2019,116 @@ fun BooksScreen(bookViewModel: BookViewModel) {
             color = Color(0xFF1B5E20)
         )
 
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 16.dp)
+            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(bookList.size) { index ->
                 val book = bookList[index]
-                Card(
+                val context = LocalContext.current
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp, horizontal = 8.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                        .clickable {
+                            val link = book.download_url
+                            if (!link.isNullOrBlank()) {
+                                openUrl(context, link)
+                            } else {
+                                Toast.makeText(context, "Opening ${book.title ?: "Book"}...", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                 ) {
-                    Row(
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                            .height(210.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
                     ) {
-                        // Placeholder cover icon/box
-                        Box(
-                            modifier = Modifier
-                                .size(width = 60.dp, height = 80.dp)
-                                .background(
-                                    color = Color(0xFFE8F5E9),
-                                    shape = RoundedCornerShape(8.dp)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MenuBook,
-                                contentDescription = "Book Cover",
-                                tint = Color(0xFF25D366),
-                                modifier = Modifier.size(32.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = book.title ?: "Untitled Book",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
-                            if (!book.author.isNullOrBlank()) {
-                                Text(
-                                    text = "By ${book.author}",
-                                    fontSize = 13.sp,
-                                    color = Color.Gray,
-                                    modifier = Modifier.padding(top = 2.dp)
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            if (!book.cover_image.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(book.cover_image)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = book.title,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
                                 )
-                            }
-                            if (!book.description.isNullOrBlank()) {
-                                Text(
-                                    text = book.description,
-                                    fontSize = 12.sp,
-                                    color = Color.DarkGray,
-                                    maxLines = 2,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(color = Color(0xFF1E3A1E))
+                                        .padding(12.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.MenuBook,
+                                            contentDescription = "Book Cover",
+                                            tint = Color(0xFF25D366),
+                                            modifier = Modifier.size(44.dp)
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text(
+                                            text = book.title ?: "Eruvaaka Publication",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 3,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
                             }
 
-                            Button(
-                                onClick = { /* Handle download / view */ },
+                            // Yellow round book badge overlay in bottom-right corner (matching Magzter look)
+                            Box(
                                 modifier = Modifier
-                                    .padding(top = 8.dp)
-                                    .height(32.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366))
+                                    .padding(8.dp)
+                                    .size(28.dp)
+                                    .align(Alignment.BottomEnd)
+                                    .background(
+                                        color = Color(0xFFFFD600),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Text(text = "Read / Download", fontSize = 11.sp, color = Color.White)
+                                Icon(
+                                    imageVector = Icons.Default.MenuBook,
+                                    contentDescription = null,
+                                    tint = Color.Black,
+                                    modifier = Modifier.size(16.dp)
+                                )
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = book.title ?: "Untitled",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1A1A1A),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
+                    )
                 }
             }
         }

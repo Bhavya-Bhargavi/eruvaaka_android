@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.R
@@ -274,7 +275,6 @@ fun MagazineTab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     Box(
         modifier = modifier
             .height(44.dp)
@@ -282,25 +282,17 @@ fun MagazineTab(
                 color = if (selected) Green else Color.Transparent,
                 shape = RoundedCornerShape(8.dp)
             )
-            .clickable {
-                onClick()
-            },
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-
         Text(
             text = title,
             fontSize = 14.sp,
-            fontWeight = if (selected) {
-                FontWeight.Bold
-            } else {
-                FontWeight.Normal
-            },
-            color = if (selected) {
-                Color.White
-            } else {
-                Color.DarkGray
-            }
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            color = if (selected) Color.White else Color.DarkGray,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -313,20 +305,15 @@ fun SubscriptionPlanCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
     val yearlyBasePrice = 750
-
     val normalPrice = yearlyBasePrice * plan.years
-
     val saving = normalPrice - plan.price
-
     val perYear = plan.price / plan.years
 
     Card(
         modifier = modifier
-            .clickable {
-                onClick()
-            }
+            .height(160.dp)
+            .clickable { onClick() }
             .border(
                 width = if (selected) 2.dp else 1.dp,
                 color = if (selected) Green else BorderGray,
@@ -334,123 +321,118 @@ fun SubscriptionPlanCard(
             ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (selected) {
-                LightGreen
-            } else {
-                Color.White
-            }
+            containerColor = if (selected) LightGreen else Color.White
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (selected) 4.dp else 1.dp
         )
     ) {
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(25.dp),
+                .fillMaxSize()
+                .padding(vertical = 8.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             // Popular badge
             if (popular) {
-
                 Box(
                     modifier = Modifier
                         .background(
                             color = Green,
                             shape = RoundedCornerShape(6.dp)
                         )
-                        .padding(
-                            horizontal = 7.dp,
-                            vertical = 4.dp
-                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-
                     Text(
                         text = "POPULAR",
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = Color.White,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
-
             } else {
-
-                Spacer(
-                    modifier = Modifier.height(22.dp)
-                )
+                Spacer(modifier = Modifier.height(14.dp))
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = "${plan.years} YEAR",
-                fontSize = 15.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (selected) Green else Color.DarkGray
+                color = if (selected) Green else Color.DarkGray,
+                maxLines = 1,
+                softWrap = false
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             Text(
                 text = "₹${plan.price}",
-                fontSize = 20.sp,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                maxLines = 1,
+                softWrap = false
             )
 
             Text(
-                text = "₹$perYear / year",
-                fontSize = 11.sp,
-                color = Color.Gray
+                text = "₹$perYear / yr",
+                fontSize = 10.sp,
+                color = Color.Gray,
+                maxLines = 1,
+                softWrap = false
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             if (saving > 0) {
-
                 Text(
                     text = "Save ₹$saving",
-                    fontSize = 11.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     color = Green,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    softWrap = false
                 )
-
             } else {
-
                 Text(
-                    text = "Standard price",
-                    fontSize = 11.sp,
-                    color = Color.Gray
+                    text = "Standard",
+                    fontSize = 10.sp,
+                    color = Color.Gray,
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             if (selected) {
-
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
-
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
                         tint = Green,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(13.dp)
                     )
-
-                    Spacer(modifier = Modifier.width(3.dp))
-
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = "Selected",
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Green
+                        color = Green,
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
+            } else {
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
