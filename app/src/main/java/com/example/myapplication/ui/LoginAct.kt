@@ -50,7 +50,7 @@ class LoginAct : ComponentActivity() {
 
     private val registrationViewModel: RegistrationViewModel by viewModels()
     private val loginViewModel: LoginViewModel by viewModels()
-     var expectedOtp: String = ""
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -126,7 +126,7 @@ class LoginAct : ComponentActivity() {
                 val loginState by loginViewModel.loginState
                     .collectAsState()
 
-                LoginScreen(
+                LoginScreen( isLoading = loginState is LoginState.Loading,
 
                     onSendOtpClick = { mobile ->
 
@@ -173,6 +173,50 @@ class LoginAct : ComponentActivity() {
                             state.message,
                             Toast.LENGTH_LONG
                         ).show()
+                    }
+                }
+            }
+
+            composable("login") {
+                val loginState by loginViewModel.loginState
+                    .collectAsState()
+
+                LoginScreen(
+                    isLoading = loginState is LoginState.Loading,
+
+                    onSendOtpClick = { mobile ->
+                        loginViewModel.loginUser(mobile)
+                    },
+
+                    onRegisterClick = {
+                        navController.navigate("registration")
+                    }
+                )
+
+                when (val state = loginState) {
+
+                    LoginState.Idle -> Unit
+
+                    LoginState.Loading -> {
+                        // Button shows loading state
+                    }
+
+                    is LoginState.Success -> {
+                        LaunchedEffect(state.mobile) {
+                            navController.navigate("otp/${state.mobile}") {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    is LoginState.Error -> {
+                        LaunchedEffect(state) {
+                            Toast.makeText(
+                                this@LoginAct,
+                                state.message,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
             }
@@ -386,10 +430,12 @@ class LoginAct : ComponentActivity() {
      */
 
     @Composable
-    private fun LoginScreen(
+    private fun LoginScreen(isLoading: Boolean,
         onSendOtpClick: (String) -> Unit,
         onRegisterClick: () -> Unit
     ) {
+        var isOtpLoading by remember { mutableStateOf(false) }
+        var otpSent by remember { mutableStateOf(false) }
 
         var mobileNumber by rememberSaveable {
             mutableStateOf("")
@@ -648,7 +694,7 @@ class LoginAct : ComponentActivity() {
                              * --------------------------------
                              */
 
-                            Button(
+                            /*Button(
 
                                 onClick = {
                                     onSendOtpClick(mobileNumber)
@@ -680,6 +726,45 @@ class LoginAct : ComponentActivity() {
                                     fontWeight =
                                         FontWeight.Bold
                                 )
+                            }*/
+
+                            Button(
+                                onClick = {
+                                    if (!isLoading && isMobileValid) {
+                                        onSendOtpClick(mobileNumber)
+                                    }
+                                },
+                                enabled = isMobileValid && !isLoading,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(54.dp),
+                                shape = RoundedCornerShape(15.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF2E7D32),
+                                    disabledContainerColor = Color(0xFFBDBDBD)
+                                )
+                            ) {
+                                if (isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+
+                                    Spacer(modifier = Modifier.width(8.dp))
+
+                                    Text(
+                                        text = "Sending OTP...",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Send OTP",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
 
 

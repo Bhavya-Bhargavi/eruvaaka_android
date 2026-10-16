@@ -177,79 +177,46 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    /*fun verifyOtp(
-        phone: String,
-        otp: String
-    ) {
+    fun loginUser(phone: String) {
+
+        // Prevent duplicate requests
+        if (_loginState.value is LoginState.Loading) {
+            return
+        }
+
+        // Set immediately before launching the coroutine
+        _loginState.value = LoginState.Loading
 
         viewModelScope.launch {
-
             try {
-
-                _verifyOtpState.value = VerifyOtpState.Loading
-
-                val request = VerifyOtpRequest(
-                    phone = phone,
-                    otp = otp
+                val request = LoginRequest(
+                    phone = phone
                 )
 
-                val response = repository.verifyOtp(phone, otp)
+                val result = repository.loginUser(request)
 
-
-                *//*
-                 * Save token + user information
-                 *//*
-
-                userPreferences.saveUserData(
-
-                    token = response.token,
-
-                    userId = response.user.id,
-
-                    firstName =
-                        response.user.first_name,
-
-                    lastName =
-                        response.user.last_name,
-
-                    phone =
-                        response.user.phone,
-
-                    email =
-                        response.user.email,
-
-                    state =
-                        response.user.state,
-
-                    district =
-                        response.user.district,
-
-                    mandal =
-                        response.user.mandal,
-
-                    pincode =
-                        response.user.pincode,
-
-                    role =
-                        response.user.role
-                )
-
-
-                _verifyOtpState.value =
-                    VerifyOtpState.Success(response)
+                result
+                    .onSuccess { response ->
+                        _loginState.value = LoginState.Success(
+                            message = response.message,
+                            mobile = phone
+                        )
+                    }
+                    .onFailure { error ->
+                        _loginState.value = LoginState.Error(
+                            error.message ?: "Unable to send OTP"
+                        )
+                    }
 
             } catch (e: Exception) {
-
-                _verifyOtpState.value =
-                    VerifyOtpState.Error(
-                        e.message
-                            ?: "OTP verification failed"
-                    )
+                _loginState.value = LoginState.Error(
+                    e.message ?: "Something went wrong"
+                )
             }
         }
-    }*/
+    }
 
-    fun loginUser(phone: String) {
+    /*fun loginUser(phone: String) {
 
         viewModelScope.launch {
 
@@ -281,5 +248,5 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                         )
                 }
         }
-    }
+    }*/
 }
