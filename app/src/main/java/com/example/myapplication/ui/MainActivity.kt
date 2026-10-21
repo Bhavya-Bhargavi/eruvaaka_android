@@ -126,6 +126,9 @@ import com.example.myapplication.ViewModel.MediaViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import android.graphics.Color as AndroidColor
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 
 enum class MenuType {
     HOME,
@@ -761,7 +764,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
                                 if (selectedArticleUrl != null) {
                                     ArticleWebViewScreen(
-                                        url = selectedArticleUrl!!,
+                                        articleContent = selectedArticleUrl!!,
                                         onBack = {
                                             selectedArticleUrl = null
                                         }
@@ -916,7 +919,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         }
                         ScreenType.NEWS -> {
                             var selectedTab by remember { mutableStateOf(0) }
-                            TabsSection(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
+                            //TabsSection(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
                             NewsFeed(selectedTab = selectedTab,
                                     selectedArticleUrl = selectedArticleUrl,
                                 onArticleSelected = { url ->
@@ -1496,7 +1499,7 @@ fun NewsFeed(
 
     if (selectedArticleUrl != null) {
             ArticleWebViewScreen(
-                url = selectedArticleUrl!!,
+                articleContent = selectedArticleUrl!!,
                 onBack = onArticleBack
             )
 
@@ -1582,10 +1585,13 @@ fun NewsFeed(
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp)
+                                    .padding(
+                                        horizontal = 12.dp,
+                                        vertical = 5.dp
+                                    )
                                     .clickable {
                                         if (item.link.isNotBlank()) {
-                                            onArticleSelected(item.link)
+                                            onArticleSelected(item.content)
                                         } else {
                                             Toast.makeText(
                                                 context,
@@ -1594,12 +1600,21 @@ fun NewsFeed(
                                             ).show()
                                         }
                                     },
-                                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White)
+                                shape = RoundedCornerShape(10.dp),
+                                elevation = CardDefaults.cardElevation(
+                                    defaultElevation = 2.dp
+                                ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.White
+                                )
                             ) {
-                                Column(modifier = Modifier.fillMaxWidth()) {
-                                    // 1. IMAGE 1ST
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    // Small thumbnail on the left
                                     if (!imageUrl.isNullOrBlank()) {
                                         AsyncImage(
                                             model = ImageRequest.Builder(context)
@@ -1607,98 +1622,182 @@ fun NewsFeed(
                                                 .crossfade(true)
                                                 .build(),
                                             contentDescription = item.title,
+                                            contentScale = ContentScale.Crop,
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(200.dp)
+                                                .size(
+                                                    width = 80.dp,
+                                                    height = 50.dp
+                                                )
                                                 .clip(
-                                                    RoundedCornerShape(
-                                                        topStart = 12.dp,
-                                                        topEnd = 12.dp
-                                                    )
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                        )
+                                    } else {
+                                        // Placeholder when no image exists
+                                        Box(
+                                            modifier = Modifier
+                                                .size(
+                                                    width = 80.dp,
+                                                    height = 50.dp
+                                                )
+                                                .clip(
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                                .background(
+                                                    Color(0xFFE8F5E9)
                                                 ),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
-
-                                    Column(modifier = Modifier.padding(14.dp)) {
-                                        if (item.categories.isNotEmpty()) {
-                                            LazyRow(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(bottom = 8.dp),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                items(item.categories.take(4).size) { catIdx ->
-                                                    val cat = item.categories[catIdx]
-                                                    Surface(
-                                                        color = Color(0xFFE8F5E9),
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    ) {
-                                                        Text(
-                                                            text = cat,
-                                                            fontSize = 11.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = Color(0xFF2E7D32),
-                                                            maxLines = 1,
-                                                            softWrap = false,
-                                                            modifier = Modifier.padding(
-                                                                horizontal = 8.dp,
-                                                                vertical = 4.dp
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        // 2. HEADING
-                                        Text(
-                                            text = item.title,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 18.sp,
-                                            color = Color(0xFF1B231B),
-                                            lineHeight = 24.sp
-                                        )
-
-                                        // 3. 5-6 LINES CONTENT
-                                        val cleanDesc = item.getCleanDescription()
-                                        if (cleanDesc.isNotBlank()) {
-                                            Spacer(modifier = Modifier.height(8.dp))
-                                            Text(
-                                                text = cleanDesc,
-                                                fontSize = 14.sp,
-                                                color = Color.DarkGray,
-                                                maxLines = 6,
-                                                overflow = TextOverflow.Ellipsis,
-                                                lineHeight = 20.sp
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Article,
+                                                contentDescription = null,
+                                                tint = Color(0xFF388E3C),
+                                                modifier = Modifier.size(30.dp)
                                             )
                                         }
+                                    }
 
-                                        Spacer(modifier = Modifier.height(10.dp))
+                                    Spacer(
+                                        modifier = Modifier.width(12.dp)
+                                    )
 
-                                        // 4. HYPERLINK
+                                    // Title and read-more indicator on the right
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
                                         Text(
-                                            text = "Read Full Article →",
-                                            fontSize = 13.sp,
-                                            color = Color(0xFF2E7D32),
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier
-                                                .align(Alignment.End)
-                                                .clickable
-                                                {
-                                                    if (item.link.isNotBlank()) {
-                                                        onArticleSelected(item.link)
-                                                    } else {
-                                                        Toast.makeText(
-                                                            context,
-                                                            "Article link is unavailable",
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                    }
-                                                }
+                                            text = item.title,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF263238),
+                                            lineHeight = 21.sp,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
                                         )
                                     }
                                 }
+
+
+                                    /*Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                                            .clickable {
+                                                if (item.link.isNotBlank()) {
+                                                    onArticleSelected(item.link)
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Article link is unavailable",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            },
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                                    ) {
+                                        Column(modifier = Modifier.fillMaxWidth()) {
+                                            // 1. IMAGE 1ST
+                                            if (!imageUrl.isNullOrBlank()) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(context)
+                                                        .data(imageUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = item.title,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(200.dp)
+                                                        .clip(
+                                                            RoundedCornerShape(
+                                                                topStart = 12.dp,
+                                                                topEnd = 12.dp
+                                                            )
+                                                        ),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+
+                                            Column(modifier = Modifier.padding(14.dp)) {
+                                                if (item.categories.isNotEmpty()) {
+                                                    LazyRow(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(bottom = 8.dp),
+                                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                    ) {
+                                                        items(item.categories.take(4).size) { catIdx ->
+                                                            val cat = item.categories[catIdx]
+                                                            Surface(
+                                                                color = Color(0xFFE8F5E9),
+                                                                shape = RoundedCornerShape(6.dp)
+                                                            ) {
+                                                                Text(
+                                                                    text = cat,
+                                                                    fontSize = 11.sp,
+                                                                    fontWeight = FontWeight.Bold,
+                                                                    color = Color(0xFF2E7D32),
+                                                                    maxLines = 1,
+                                                                    softWrap = false,
+                                                                    modifier = Modifier.padding(
+                                                                        horizontal = 8.dp,
+                                                                        vertical = 4.dp
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                // 2. HEADING
+                                                Text(
+                                                    text = item.title,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 18.sp,
+                                                    color = Color(0xFF1B231B),
+                                                    lineHeight = 24.sp
+                                                )
+
+                                                // 3. 5-6 LINES CONTENT
+                                                val cleanDesc = item.getCleanDescription()
+                                                if (cleanDesc.isNotBlank()) {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    Text(
+                                                        text = cleanDesc,
+                                                        fontSize = 14.sp,
+                                                        color = Color.DarkGray,
+                                                        maxLines = 6,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        lineHeight = 20.sp
+                                                    )
+                                                }
+
+                                                Spacer(modifier = Modifier.height(10.dp))
+
+                                                // 4. HYPERLINK
+                                                Text(
+                                                    text = "Read Full Article →",
+                                                    fontSize = 13.sp,
+                                                    color = Color(0xFF2E7D32),
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier
+                                                        .align(Alignment.End)
+                                                        .clickable
+                                                        {
+                                                            if (item.link.isNotBlank()) {
+                                                                onArticleSelected(item.link)
+                                                            } else {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Article link is unavailable",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            }
+                                                        }
+                                                )
+                                            }
+                                        }*/
                             }
                         }
                     } else {
@@ -1734,95 +1833,21 @@ fun NewsFeed(
 
 @Composable
 fun ArticleWebViewScreen(
-    url: String,
+    articleContent: String,
     onBack: () -> Unit
 ) {
-    WebViewScreen(url = url, modifier = Modifier.wrapContentSize())
-
-}
-
-
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-fun WebViewScreen(
-    url: String,
-    modifier: Modifier = Modifier
-) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            WebView(context).apply {
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
-
-                webViewClient = object : WebViewClient() {
-
-                    override fun onPageFinished(view: WebView, pageUrl: String) {
-                        super.onPageFinished(view, pageUrl)
-
-                        val css = """
-        (function() {
-            var style = document.getElementById('eru-app-clean-reader');
-
-            if (!style) {
-                style = document.createElement('style');
-                style.id = 'eru-app-clean-reader';
-                document.head.appendChild(style);
-            }
-
-            style.textContent = `
-                /* Hide website header and navigation */
-                header.site-header,
-                #masthead,
-                .site-header,
-                .main-header,
-                .header-wrapper,
-                .td-header-wrap,
-                .td-mobile-header,
-                .elementor-location-header,
-                .wp-block-navigation,
-                nav.main-navigation,
-                .main-navigation,
-                .navbar,
-                .navbar-toggler,
-                .menu-toggle,
-                .elementor-menu-toggle,
-                .wp-block-navigation__responsive-container-open,
-                .mobile-menu-toggle,
-                .mobile-menu-button,
-                .hamburger,
-                .search-toggle,
-                .search-icon,
-                .td-search-btns-wrap,
-                .td-search-wrapper,
-                .search-form {
-                    display: none !important;
-                }
-
-                /* Remove extra space above the article */
-                body {
-                    padding-top: 0 !important;
-                }
-            `;
-        })();
-    """.trimIndent()
-
-                        view.evaluateJavascript(css, null)
-                    }
-
-                }
-
-                webChromeClient = WebChromeClient()
-                loadUrl(url)
-            }
-        },
-        update = { webView ->
-            if (webView.url != url) {
-                webView.loadUrl(url)
-            }
-        }
+    //WebViewScreen(content = articleContent, modifier = Modifier.wrapContentSize())
+    ArticleHtmlContent(
+        htmlContent = articleContent,
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
     )
+
 }
+
+
+
 
 @Composable
 fun HomeNewsFeed(
@@ -1878,7 +1903,9 @@ fun HomeNewsFeed(
                         modifier = Modifier.padding(16.dp),
                         color = Color.Gray
                     )
-                } else {
+                }
+                else
+                {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -1894,7 +1921,7 @@ fun HomeNewsFeed(
                                     )
                                     .clickable {
                                         if (item.link.isNotBlank()) {
-                                            onArticleSelected(item.link)
+                                            onArticleSelected(item.content)
                                         } else {
                                             Toast.makeText(
                                                 context,
@@ -1928,8 +1955,8 @@ fun HomeNewsFeed(
                                             contentScale = ContentScale.Crop,
                                             modifier = Modifier
                                                 .size(
-                                                    width = 105.dp,
-                                                    height = 85.dp
+                                                    width = 80.dp,
+                                                    height = 50.dp
                                                 )
                                                 .clip(
                                                     RoundedCornerShape(8.dp)
@@ -1940,8 +1967,8 @@ fun HomeNewsFeed(
                                         Box(
                                             modifier = Modifier
                                                 .size(
-                                                    width = 105.dp,
-                                                    height = 85.dp
+                                                    width = 80.dp,
+                                                    height = 50.dp
                                                 )
                                                 .clip(
                                                     RoundedCornerShape(8.dp)
@@ -1974,11 +2001,11 @@ fun HomeNewsFeed(
                                             fontWeight = FontWeight.SemiBold,
                                             color = Color(0xFF263238),
                                             lineHeight = 21.sp,
-                                            maxLines = 3,
+                                            maxLines = 2,
                                             overflow = TextOverflow.Ellipsis
                                         )
 
-                                        Spacer(
+                                        /*Spacer(
                                             modifier = Modifier.height(6.dp)
                                         )
 
@@ -1987,7 +2014,7 @@ fun HomeNewsFeed(
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF2E7D32)
-                                        )
+                                        )*/
                                     }
                                 }
                             }
@@ -2385,6 +2412,112 @@ fun openUrl(context: Context, url: String) {
         ).show()
     }
 }
+
+
+@Composable
+fun ArticleHtmlContent(
+    htmlContent: String,
+    modifier: Modifier = Modifier
+) {
+    val fullHtml = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport"
+                  content="width=device-width, initial-scale=1.0">
+
+            <style>
+                body {
+                    font-family: sans-serif;
+                    font-size: 17px;
+                    line-height: 1.8;
+                    color: #333333;
+                    background-color: #FFFFFF;
+                    margin: 0;
+                    padding: 16px;
+                    overflow-wrap: anywhere;
+                }
+
+                p {
+                    margin: 0 0 16px 0;
+                    text-align: justify;
+                }
+
+                h1, h2, h3, h4, h5, h6 {
+                    color: #245D35;
+                    line-height: 1.5;
+                    margin: 22px 0 12px;
+                }
+
+                strong, b {
+                    font-weight: bold;
+                }
+
+                ul, ol {
+                    padding-left: 26px;
+                    margin: 12px 0 20px;
+                }
+
+                li {
+                    margin-bottom: 10px;
+                    padding-left: 3px;
+                }
+
+                a {
+                    color: #1976D2;
+                    text-decoration: underline;
+                }
+
+                img {
+                    max-width: 100%;
+                    height: auto;
+                }
+
+                iframe, video {
+                    max-width: 100%;
+                }
+            </style>
+        </head>
+        <body>
+            $htmlContent
+        </body>
+        </html>
+    """.trimIndent()
+
+    AndroidView(
+        modifier = modifier,
+        factory = { context ->
+            WebView(context).apply {
+                settings.javaScriptEnabled = false
+                webViewClient = WebViewClient()
+                setBackgroundColor(AndroidColor.WHITE)
+
+                loadDataWithBaseURL(
+                    "https://eruvaaka.com/",
+                    fullHtml,
+                    "text/html",
+                    "UTF-8",
+                    null
+                )
+            }
+        },
+        update = { webView ->
+            if (webView.tag != fullHtml) {
+                webView.tag = fullHtml
+
+                webView.loadDataWithBaseURL(
+                    "https://eruvaaka.com/",
+                    fullHtml,
+                    "text/html",
+                    "UTF-8",
+                    null
+                )
+            }
+        }
+    )
+}
+
 
 @Composable
 fun BooksScreen(bookViewModel: BookViewModel) {
