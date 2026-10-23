@@ -130,6 +130,13 @@ import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
 
+data class SelectedNewsArticle(
+    val title: String,
+    val creator: String,
+    val imageUrl: String?,
+    val content: String
+)
+
 enum class MenuType {
     HOME,
     MAGAZINE,
@@ -331,7 +338,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             put(
                 "prefill",
                 JSONObject().apply {
-                   // put("email", "user@example.com") //user data replace
+                    // put("email", "user@example.com") //user data replace
                     put("contact", "8790849906") //need to dynamic
                 }
             )
@@ -379,7 +386,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 lifecycleScope.launch {
                                     userPreferences.setSubscribed(true)
                                 }
-                           }
+                            }
                         }
                     }
                 }
@@ -400,8 +407,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         var isSubscrptnClick by remember { mutableStateOf(false) }
         var currentScreen by remember { mutableStateOf(ScreenType.HOME) }
 
-        var selectedArticleUrl by remember {
-            mutableStateOf<String?>(null)
+        var selectedArticle by remember {
+            mutableStateOf<SelectedNewsArticle?>(null)
         }
 
 
@@ -420,7 +427,11 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             }
         }
 
-        BackHandler(enabled = currentScreen != ScreenType.HOME) {
+        BackHandler(enabled = selectedArticle != null) {
+            selectedArticle = null
+        }
+
+        BackHandler(enabled = selectedArticle == null && currentScreen != ScreenType.HOME) {
             currentScreen = ScreenType.HOME
         }
 
@@ -439,7 +450,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     val storage = MagazineStorage(context)
                     val isMagValid = storage.isMagazineDownloaded("eru_vaaka_latest.pdf")
                     val isEpaperValid = storage.isMagazineDownloaded("epaper.pdf")
-                    
+
                     if (selectedItem == "Magazine" && isMagValid) {
                         currentScreen = ScreenType.PDF_VIEWER
                     } else if (isEpaperValid) {
@@ -458,7 +469,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             }
         }
 
-        if (showProfileDialog) {
+        //alert
+        /*if (showProfileDialog) {
 
             AlertDialog(
                 onDismissRequest = {
@@ -502,19 +514,19 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                     }
                 }
             )
-        }
+        }*/
 
 
 
         ModalNavigationDrawer(
-            drawerState = drawerState,gesturesEnabled = selectedArticleUrl == null,
+            drawerState = drawerState,gesturesEnabled = selectedArticle == null,
             drawerContent = {
-                    DrawerContent(
-                        staticMenus = menuItems,
-                        categories = categories,
-                        selectedItem = selectedItem,
-                        userName = profile.first_name,
-                        phoneNumber = profile.phone,
+                DrawerContent(
+                    staticMenus = menuItems,
+                    categories = categories,
+                    selectedItem = selectedItem,
+                    userName = profile.first_name,
+                    phoneNumber = profile.phone,
                     onItemClick = { item ->
 
                         // Handle navigation logic
@@ -593,7 +605,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
             Scaffold(
                 topBar = {
-                    TopAppBar(
+                    if (selectedArticle == null) TopAppBar(
                         title = { Text("Eruvaaka") },
                         navigationIcon = {
                             IconButton(onClick = {
@@ -611,7 +623,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 },
 
                 bottomBar = {
-                    Column(
+                    if (selectedArticle == null) Column(
                         modifier = Modifier.fillMaxWidth().padding(8.dp)
                     ) {
                         /*Button(
@@ -624,7 +636,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         ) {
                             Text("ACCESS E-MAGAZINE")
                         }*/
-                        
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -682,9 +694,14 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
             ) { padding ->
 
-                Column(modifier = Modifier.padding(padding)) {
-
-                    when (currentScreen) {
+                Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+                    val openedArticle = selectedArticle
+                    if (openedArticle != null) {
+                        NewsArticleScreen(
+                            article = openedArticle,
+                            onBack = { selectedArticle = null }
+                        )
+                    } else when (currentScreen) {
 
                         ScreenType.HOME -> {
                             Column(
@@ -758,26 +775,13 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                     }
                                 )
 
-                                var selectedArticleUrl by remember {
-                                    mutableStateOf<String?>(null)
-                                }
+                                HomeNewsFeed(
+                                    onArticleSelected = { article ->
+                                        selectedArticle = article
+                                    }
+                                )
 
-                                if (selectedArticleUrl != null) {
-                                    ArticleWebViewScreen(
-                                        articleContent = selectedArticleUrl!!,
-                                        onBack = {
-                                            selectedArticleUrl = null
-                                        }
-                                    )
-                                } else {
-                                    HomeNewsFeed(
-                                        onArticleSelected = { url ->
-                                            selectedArticleUrl = url
-                                        }
-                                    )
-                                }
-
-                                //HomeNewsFeed(mediaViewModel = mediaViewModel)
+                                // The selected article replaces this dashboard content.
                             }
                         }
 
@@ -797,7 +801,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                         userPreferences.setSubscribed(true)
                                     }
 
-                                     pPaymentViewModel.createOrder("yearly")
+                                    pPaymentViewModel.createOrder("yearly")
                                     // Your Razorpay flow
                                     //
                                     // paymentViewModel.createOrder(
@@ -919,15 +923,15 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         }
                         ScreenType.NEWS -> {
                             var selectedTab by remember { mutableStateOf(0) }
-                            //TabsSection(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
-                            NewsFeed(selectedTab = selectedTab,
-                                    selectedArticleUrl = selectedArticleUrl,
-                                onArticleSelected = { url ->
-                                    selectedArticleUrl = url
+                            TabsSection(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
+                            NewsFeed(
+                                selectedTab = selectedTab,
+                                selectedArticleUrl = null,
+                                onArticleSelected = { article ->
+                                    selectedArticle = article
                                 },
-                                onArticleBack = {
-                                    selectedArticleUrl = null
-                                })
+                                onArticleBack = { selectedArticle = null }
+                            )
                         }
                         ScreenType.BOOKS -> {
                             BooksScreen(bookViewModel)
@@ -1001,7 +1005,7 @@ fun DrawerContent(
         // SOCIAL MEDIA
         // -----------------------------
 
-        Card(
+        /*Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp),
@@ -1067,7 +1071,7 @@ fun DrawerContent(
                     )
                 }
 
-                /*SocialIcon(
+                *//*SocialIcon(
                     icon = R.drawable.telegram,
                     contentDescription = "Telegram"
                 ) {
@@ -1075,9 +1079,9 @@ fun DrawerContent(
                         context,
                         "https://t.me/"
                     )
-                }*/
+                }*//*
             }
-        }
+        }*/
 
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -1149,16 +1153,16 @@ fun rememberBitmapPainter(@DrawableRes id: Int): Painter {
             inJustDecodeBounds = true
         }
         BitmapFactory.decodeResource(context.resources, id, options)
-        
+
         var sampleSize = 1
         val maxDim = 256
         val width = if (options.outWidth > 0) options.outWidth else maxDim
         val height = if (options.outHeight > 0) options.outHeight else maxDim
-        
+
         while ((width / sampleSize) > maxDim || (height / sampleSize) > maxDim) {
             sampleSize *= 2
         }
-        
+
         val decodeOptions = BitmapFactory.Options().apply {
             inSampleSize = sampleSize
         }
@@ -1167,7 +1171,7 @@ fun rememberBitmapPainter(@DrawableRes id: Int): Painter {
         } catch (e: Exception) {
             null
         }
-        
+
         if (bitmap != null) {
             BitmapPainter(bitmap.asImageBitmap())
         } else {
@@ -1484,7 +1488,7 @@ fun NewsFeed(
     mediaViewModel: MediaViewModel = viewModel(),
     selectedTab: Int,
     selectedArticleUrl: String?,
-    onArticleSelected: (String) -> Unit,
+    onArticleSelected: (SelectedNewsArticle) -> Unit,
     onArticleBack: () -> Unit
 ) {
     /*var selectedArticleUrl by remember {
@@ -1498,10 +1502,10 @@ fun NewsFeed(
     }
 
     if (selectedArticleUrl != null) {
-            ArticleWebViewScreen(
-                articleContent = selectedArticleUrl!!,
-                onBack = onArticleBack
-            )
+        ArticleWebViewScreen(
+            articleContent = selectedArticleUrl!!,
+            onBack = onArticleBack
+        )
 
     } else {
 
@@ -1591,7 +1595,14 @@ fun NewsFeed(
                                     )
                                     .clickable {
                                         if (item.link.isNotBlank()) {
-                                            onArticleSelected(item.content)
+                                            onArticleSelected(
+                                                SelectedNewsArticle(
+                                                    title = item.title,
+                                                    creator = item.creator.orEmpty(),
+                                                    imageUrl = item.getEffectiveImageUrl(),
+                                                    content = item.content
+                                                )
+                                            )
                                         } else {
                                             Toast.makeText(
                                                 context,
@@ -1678,126 +1689,140 @@ fun NewsFeed(
                                 }
 
 
-                                    /*Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                                            .clickable {
-                                                if (item.link.isNotBlank()) {
-                                                    onArticleSelected(item.link)
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Article link is unavailable",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                }
-                                            },
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                                        shape = RoundedCornerShape(12.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                                    ) {
-                                        Column(modifier = Modifier.fillMaxWidth()) {
-                                            // 1. IMAGE 1ST
-                                            if (!imageUrl.isNullOrBlank()) {
-                                                AsyncImage(
-                                                    model = ImageRequest.Builder(context)
-                                                        .data(imageUrl)
-                                                        .crossfade(true)
-                                                        .build(),
-                                                    contentDescription = item.title,
+                                /*Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        .clickable {
+                                            if (item.link.isNotBlank()) {
+                                                onArticleSelected(
+                                                SelectedNewsArticle(
+                                                    title = item.title,
+                                                    creator = item.creator.orEmpty(),
+                                                    imageUrl = item.getEffectiveImageUrl(),
+                                                    content = item.content
+                                                )
+                                            )
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Article link is unavailable",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                        },
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White)
+                                ) {
+                                    Column(modifier = Modifier.fillMaxWidth()) {
+                                        // 1. IMAGE 1ST
+                                        if (!imageUrl.isNullOrBlank()) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(context)
+                                                    .data(imageUrl)
+                                                    .crossfade(true)
+                                                    .build(),
+                                                contentDescription = item.title,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(200.dp)
+                                                    .clip(
+                                                        RoundedCornerShape(
+                                                            topStart = 12.dp,
+                                                            topEnd = 12.dp
+                                                        )
+                                                    ),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+
+                                        Column(modifier = Modifier.padding(14.dp)) {
+                                            if (item.categories.isNotEmpty()) {
+                                                LazyRow(
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .height(200.dp)
-                                                        .clip(
-                                                            RoundedCornerShape(
-                                                                topStart = 12.dp,
-                                                                topEnd = 12.dp
-                                                            )
-                                                        ),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                            }
-
-                                            Column(modifier = Modifier.padding(14.dp)) {
-                                                if (item.categories.isNotEmpty()) {
-                                                    LazyRow(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .padding(bottom = 8.dp),
-                                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                    ) {
-                                                        items(item.categories.take(4).size) { catIdx ->
-                                                            val cat = item.categories[catIdx]
-                                                            Surface(
-                                                                color = Color(0xFFE8F5E9),
-                                                                shape = RoundedCornerShape(6.dp)
-                                                            ) {
-                                                                Text(
-                                                                    text = cat,
-                                                                    fontSize = 11.sp,
-                                                                    fontWeight = FontWeight.Bold,
-                                                                    color = Color(0xFF2E7D32),
-                                                                    maxLines = 1,
-                                                                    softWrap = false,
-                                                                    modifier = Modifier.padding(
-                                                                        horizontal = 8.dp,
-                                                                        vertical = 4.dp
-                                                                    )
+                                                        .padding(bottom = 8.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
+                                                    items(item.categories.take(4).size) { catIdx ->
+                                                        val cat = item.categories[catIdx]
+                                                        Surface(
+                                                            color = Color(0xFFE8F5E9),
+                                                            shape = RoundedCornerShape(6.dp)
+                                                        ) {
+                                                            Text(
+                                                                text = cat,
+                                                                fontSize = 11.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = Color(0xFF2E7D32),
+                                                                maxLines = 1,
+                                                                softWrap = false,
+                                                                modifier = Modifier.padding(
+                                                                    horizontal = 8.dp,
+                                                                    vertical = 4.dp
                                                                 )
-                                                            }
+                                                            )
                                                         }
                                                     }
                                                 }
+                                            }
 
-                                                // 2. HEADING
+                                            // 2. HEADING
+                                            Text(
+                                                text = item.title,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 18.sp,
+                                                color = Color(0xFF1B231B),
+                                                lineHeight = 24.sp
+                                            )
+
+                                            // 3. 5-6 LINES CONTENT
+                                            val cleanDesc = item.getCleanDescription()
+                                            if (cleanDesc.isNotBlank()) {
+                                                Spacer(modifier = Modifier.height(8.dp))
                                                 Text(
-                                                    text = item.title,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 18.sp,
-                                                    color = Color(0xFF1B231B),
-                                                    lineHeight = 24.sp
-                                                )
-
-                                                // 3. 5-6 LINES CONTENT
-                                                val cleanDesc = item.getCleanDescription()
-                                                if (cleanDesc.isNotBlank()) {
-                                                    Spacer(modifier = Modifier.height(8.dp))
-                                                    Text(
-                                                        text = cleanDesc,
-                                                        fontSize = 14.sp,
-                                                        color = Color.DarkGray,
-                                                        maxLines = 6,
-                                                        overflow = TextOverflow.Ellipsis,
-                                                        lineHeight = 20.sp
-                                                    )
-                                                }
-
-                                                Spacer(modifier = Modifier.height(10.dp))
-
-                                                // 4. HYPERLINK
-                                                Text(
-                                                    text = "Read Full Article →",
-                                                    fontSize = 13.sp,
-                                                    color = Color(0xFF2E7D32),
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier
-                                                        .align(Alignment.End)
-                                                        .clickable
-                                                        {
-                                                            if (item.link.isNotBlank()) {
-                                                                onArticleSelected(item.link)
-                                                            } else {
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Article link is unavailable",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-                                                        }
+                                                    text = cleanDesc,
+                                                    fontSize = 14.sp,
+                                                    color = Color.DarkGray,
+                                                    maxLines = 6,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    lineHeight = 20.sp
                                                 )
                                             }
-                                        }*/
+
+                                            Spacer(modifier = Modifier.height(10.dp))
+
+                                            // 4. HYPERLINK
+                                            Text(
+                                                text = "Read Full Article →",
+                                                fontSize = 13.sp,
+                                                color = Color(0xFF2E7D32),
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier
+                                                    .align(Alignment.End)
+                                                    .clickable
+                                                    {
+                                                        if (item.link.isNotBlank()) {
+                                                            onArticleSelected(
+                                                SelectedNewsArticle(
+                                                    title = item.title,
+                                                    creator = item.creator.orEmpty(),
+                                                    imageUrl = item.getEffectiveImageUrl(),
+                                                    content = item.content
+                                                )
+                                            )
+                                                        } else {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Article link is unavailable",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+                                                    }
+                                            )
+                                        }
+                                    }*/
                             }
                         }
                     } else {
@@ -1836,14 +1861,68 @@ fun ArticleWebViewScreen(
     articleContent: String,
     onBack: () -> Unit
 ) {
-    //WebViewScreen(content = articleContent, modifier = Modifier.wrapContentSize())
-    ArticleHtmlContent(
-        htmlContent = articleContent,
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
-    )
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Text("News article", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+        }
+        ArticleHtmlContent(
+            htmlContent = articleContent,
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        )
+    }
+}
 
+@Composable
+fun NewsArticleScreen(
+    article: SelectedNewsArticle,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxSize().background(Color.White)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+            Text("News", fontSize = 18.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF00695C))
+        }
+
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            if (!article.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(context).data(article.imageUrl).crossfade(true).build(),
+                    contentDescription = article.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(10.dp))
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            Text(
+                text = article.title,
+                fontSize = 21.sp,
+                lineHeight = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1B231B)
+            )
+            if (article.creator.isNotBlank()) {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(text = "By ${article.creator}", fontSize = 13.sp, color = Color.Gray)
+            }
+        }
+        Divider(color = Color(0xFFE0E0E0))
+        ArticleHtmlContent(
+            htmlContent = article.content,
+            modifier = Modifier.fillMaxWidth().weight(1f)
+        )
+    }
 }
 
 
@@ -1852,7 +1931,7 @@ fun ArticleWebViewScreen(
 @Composable
 fun HomeNewsFeed(
     mediaViewModel: MediaViewModel = viewModel(),
-    onArticleSelected: (String) -> Unit
+    onArticleSelected: (SelectedNewsArticle) -> Unit
 ) {
     val newsState by mediaViewModel.newsState.collectAsState()
     val context = LocalContext.current
@@ -1921,7 +2000,14 @@ fun HomeNewsFeed(
                                     )
                                     .clickable {
                                         if (item.link.isNotBlank()) {
-                                            onArticleSelected(item.content)
+                                            onArticleSelected(
+                                                SelectedNewsArticle(
+                                                    title = item.title,
+                                                    creator = item.creator.orEmpty(),
+                                                    imageUrl = imageUrl,
+                                                    content = item.content
+                                                )
+                                            )
                                         } else {
                                             Toast.makeText(
                                                 context,
@@ -2704,7 +2790,7 @@ fun ForumsScreen(forumViewModel: ForumViewModel) {
     val forumsState by forumViewModel.forumsState.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     var selectedForumForComment by remember { mutableStateOf<ForumItem?>(null) }
     var commentText by remember { mutableStateOf("") }
 
