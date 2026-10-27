@@ -8,6 +8,7 @@ import com.example.myapplication.Model.Request.RegistrationRequest
 import com.example.myapplication.Model.Request.UpdateProfileRequest
 import com.example.myapplication.Model.Request.UpdateProfileResponse
 import com.example.myapplication.Model.Request.UserProfileResponse
+import com.example.myapplication.Model.Request.ValidateCouponRequest
 import com.example.myapplication.Model.Request.VerifyOtpRequest
 import com.example.myapplication.Model.Response.VerifyOtpResponse
 import com.example.myapplication.Model.Request.VerifyPaymentRequest
@@ -18,6 +19,7 @@ import com.example.myapplication.Model.Response.ForumResponse
 import com.example.myapplication.Model.Response.LoginResponse
 import com.example.myapplication.Model.Response.NewsResponse
 import com.example.myapplication.Model.Response.RegistrationResponse
+import com.example.myapplication.Model.Response.ValidateCouponResponse
 import com.example.myapplication.Model.Response.VerifyPaymentResponse
 import com.google.gson.JsonElement
 import okhttp3.ResponseBody
@@ -77,10 +79,12 @@ interface ApiInterface {
     suspend fun verifyOtp(
         @Body request: VerifyOtpRequest): Response<VerifyOtpResponse>
 
-    @POST("api/payments/order")
-    suspend fun createPaymentOrder(@Header("Authorization") contentType: String,
-        @Body request: CreateOrderRequest
-    ): CreateOrderResponse
+    @POST("api/coupon/validate")
+    suspend fun validateCoupon(
+        @Header("Authorization") token: String,
+        @Body request: ValidateCouponRequest
+    ): ValidateCouponResponse
+
 
     @POST("api/payments/verify")
     suspend fun verifyPaymentEndpoint(@Header("Authorization") contentType: String,

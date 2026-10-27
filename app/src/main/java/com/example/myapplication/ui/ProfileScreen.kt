@@ -52,7 +52,7 @@ fun ProfileScreen(
 
     var firstName by rememberSaveable { mutableStateOf(profile.first_name.orEmpty()) }
     var lastName by rememberSaveable { mutableStateOf(profile.last_name.orEmpty()) }
-    var address by rememberSaveable { mutableStateOf(profile.address.orEmpty()) }
+    //var address by rememberSaveable { mutableStateOf(profile.address.orEmpty()) }
     var state by rememberSaveable { mutableStateOf(profile.state.orEmpty()) }
     var district by rememberSaveable { mutableStateOf(profile.district.orEmpty()) }
     var mandal by rememberSaveable { mutableStateOf(profile.mandal.orEmpty()) }
@@ -119,13 +119,13 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            OutlinedTextField(
+            /*OutlinedTextField(
                 value = address,
                 onValueChange = { state = it },
                 label = { Text("State") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
-            )
+            )*/
 
             Spacer(modifier = Modifier.height(12.dp))
 

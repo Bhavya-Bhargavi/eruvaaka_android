@@ -129,6 +129,7 @@ import kotlinx.coroutines.flow.first
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
+import com.example.myapplication.ui.ShippingAddress
 
 data class SelectedNewsArticle(
     val title: String,
@@ -233,7 +234,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         pProfileViewModel.getProfileFromApi()
 
         enableEdgeToEdge()
-        //observePaymentState()
+        observePaymentState() //here only
 
         setContent {
             userPreferences = UserPreferences(applicationContext)
@@ -362,7 +363,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
         }
     }
 
-    private fun observePaymentState() {
+   /* private fun observePaymentState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -392,8 +393,56 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 }
             }
         }
-    }
+    }*/
 
+
+    private fun observePaymentState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+
+                launch {
+                    pPaymentViewModel.orderResponse.collect { order ->
+                        if (order != null) {
+                            pPaymentViewModel.clearOrderResponse()
+                            openRazorpayCheckout(order)
+                        }
+                    }
+                }
+
+                launch {
+                    pPaymentViewModel.paymentVerification.collect { result ->
+                        if (result != null) {
+                            pPaymentViewModel.clearPaymentVerification()
+
+                            Toast.makeText(
+                                this@MainActivity,
+                                result.message,
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            if (result.success) {
+                                userPreferences.setSubscribed(true)
+                            }
+                        }
+                    }
+                }
+
+                launch {
+                    pPaymentViewModel.errorMessage.collect { error ->
+                        if (!error.isNullOrBlank()) {
+                            pPaymentViewModel.clearError()
+
+                            Toast.makeText(
+                                this@MainActivity,
+                                error,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -785,42 +834,68 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             }
                         }
 
+
                         ScreenType.SUBSCRIPTION -> {
-                            //SubscriptionScreen()
+                            val couponResult by pPaymentViewModel.couponResponse.collectAsState()
+                            val isLoading by pPaymentViewModel.isLoading.collectAsState()
 
                             SubscriptionScreen(
-                                onSubscribe = { magazineType, plan ->
+                                couponResult = couponResult,
+                                isLoading = isLoading,
 
-                                    Log.d(
-                                        "Subscription",
-                                        "Type=$magazineType, Years=${plan.years}, Price=${plan.price}"
+                                onCouponChanged = {
+                                    pPaymentViewModel.clearCoupon()
+                                },
+
+                                onApplyCoupon = { couponCode, magazineType, plan ->
+                                    val planId = getSubscriptionPlanId(
+                                        magazineType,
+                                        plan.years
                                     )
 
-                                    // TEMPORARY TEST ONLY
-                                    lifecycleScope.launch {
-                                        userPreferences.setSubscribed(true)
+                                    pPaymentViewModel.validateCoupon(
+                                        couponCode = couponCode,
+                                        planId = planId
+                                    )
+                                },
+
+                                onSubscribe = { magazineType, plan, couponCode, address ->
+
+                                    val isPrintMagazine = magazineType == "Print Magazine"
+
+                                    val planId = getSubscriptionPlanId(
+                                        magazineType,
+                                        plan.years
+                                    )
+
+                                    val shippingAddress = if (isPrintMagazine) {
+                                        address?.let {
+                                            listOf(
+                                                it.fullName,
+                                                it.mobile,
+                                                it.addressLine,
+                                                it.landmark,
+                                                it.city,
+                                                it.state,
+                                                it.pincode
+                                            )
+                                                .filter { value -> value.isNotBlank() }
+                                                .joinToString(", ")
+                                        }
+                                    } else {
+                                        null
                                     }
 
-                                    pPaymentViewModel.createOrder("yearly")
-                                    // Your Razorpay flow
-                                    //
-                                    // paymentViewModel.createOrder(
-                                    //     planId = ...
-                                    // )
+                                    pPaymentViewModel.createOrder(
+                                        planId = planId,
+                                        couponCode = couponCode,
+                                        shippingAddress = shippingAddress,
+                                        isPrintMagazine = isPrintMagazine
+                                    )
                                 }
                             )
-
-                            /*SubscriptionScreen(
-                                onSubscribeClick = { planId ->
-                                    pPaymentViewModel.createOrder("yearly")
-                                }
-                            )*/
-                            /*SubscriptionScreen(
-                                onSubscribeClick = { planId ->
-                                    //createRazorpayOrder(planId)
-                                }
-                            )*/
                         }
+
                         ScreenType.CONTACTUS -> {
                             val contactState by loginViewModel.contactState.collectAsState()
 
@@ -945,7 +1020,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
         }
 
-        observePaymentState()
+       // observePaymentState()
     }
 }
 
@@ -2782,6 +2857,21 @@ fun BooksScreen(bookViewModel: BookViewModel) {
                 }
             }
         }
+    }
+}
+
+private fun getSubscriptionPlanId(
+    magazineType: String,
+    years: Int
+): String {
+    return when (magazineType to years) {
+        "E-Magazine" to 1 -> "emagazine_monthly"
+        "E-Magazine" to 3 -> "e_magazine_3_year"
+        "E-Magazine" to 5 -> "e_magazine_5_year"
+        "Print Magazine" to 1 -> "print_magazine_1_year"
+        "Print Magazine" to 3 -> "print_magazine_3_year"
+        "Print Magazine" to 5 -> "print_magazine_5_year"
+        else -> error("Unsupported subscription plan")
     }
 }
 
