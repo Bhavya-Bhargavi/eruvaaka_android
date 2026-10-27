@@ -36,6 +36,18 @@ class UserPreferences(private val context: Context
         private val EMAIL =
             stringPreferencesKey("email")
 
+        private val ADDRESS =
+            stringPreferencesKey("address")
+
+        private val ADDRESS1 =
+            stringPreferencesKey("address1")
+
+        private val ADDRESS2 =
+            stringPreferencesKey("address2")
+
+        private val POSTAL_ADDRESS =
+            stringPreferencesKey("postal_address")
+
         private val STATE =
             stringPreferencesKey("state")
 
@@ -74,6 +86,10 @@ class UserPreferences(private val context: Context
         lastName: String,
         phone: String,
         email: String,
+        address: String = "",
+        address1: String = "",
+        address2: String = "",
+        postalAddress: String = "",
         state: String,
         district: String,
         mandal: String,
@@ -93,6 +109,14 @@ class UserPreferences(private val context: Context
             preferences[PHONE] = phone
 
             preferences[EMAIL] = email
+
+            preferences[ADDRESS] = address
+
+            preferences[ADDRESS1] = address1
+
+            preferences[ADDRESS2] = address2
+
+            preferences[POSTAL_ADDRESS] = postalAddress
 
             preferences[STATE] = state
 
@@ -134,6 +158,26 @@ class UserPreferences(private val context: Context
     val email: Flow<String?> =
         context.dataStore.data.map {
             it[EMAIL]
+        }
+
+    val address: Flow<String?> =
+        context.dataStore.data.map {
+            it[ADDRESS]
+        }
+
+    val address1: Flow<String?> =
+        context.dataStore.data.map {
+            it[ADDRESS1]
+        }
+
+    val address2: Flow<String?> =
+        context.dataStore.data.map {
+            it[ADDRESS2]
+        }
+
+    val postalAddress: Flow<String?> =
+        context.dataStore.data.map {
+            it[POSTAL_ADDRESS]
         }
 
     val state: Flow<String?> =

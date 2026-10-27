@@ -937,10 +937,16 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
                             ProfileScreen(
                                 viewModel = pProfileViewModel,
-                                onSave = { firstName, lastName, state, district, mandal, pincode, cropInterests ->
+                                onSave = { firstName, lastName, phone, email, postalAddress, address1, address2, state, district, mandal, pincode, cropInterests ->
                                     val request = UpdateProfileRequest(
                                         firstName = firstName,
                                         lastName = lastName,
+                                        phone = phone,
+                                        email = email,
+                                        address = postalAddress,
+                                        address1 = address1,
+                                        address2 = address2,
+                                        postalAddress = postalAddress,
                                         state = state,
                                         district = district,
                                         mandal = mandal,
