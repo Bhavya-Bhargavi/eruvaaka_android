@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,12 +42,16 @@ import com.example.myapplication.Model.Request.RegistrationRequest
 fun RegistrationScreen(
     onRegisterClick: (RegistrationRequest) -> Unit
 ) {
+    val context = LocalContext.current
     var firstName by rememberSaveable { mutableStateOf("") }
     var lastName by rememberSaveable { mutableStateOf("") }
     var mobile by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var fullAddress by rememberSaveable { mutableStateOf("") }
+    var nationality by rememberSaveable { mutableStateOf("Indian") }
+    var selectedDesignation by rememberSaveable { mutableStateOf("") }
+    var customDesignation by rememberSaveable { mutableStateOf("") }
     var selectedState by rememberSaveable { mutableStateOf("") }
     var selectedDistrict by rememberSaveable { mutableStateOf("") }
     var selectedMandal by rememberSaveable { mutableStateOf("") }
@@ -125,11 +132,34 @@ fun RegistrationScreen(
             ) {
                 Button(
                     onClick = {
+                        val finalDesignation = if (selectedDesignation == "Others") customDesignation.trim() else selectedDesignation.trim()
+
+                        if (firstName.isBlank() || lastName.isBlank()) {
+                            Toast.makeText(context, "Please enter First Name and Last Name", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (mobile.length < 10) {
+                            Toast.makeText(context, "Please enter a valid 10-digit mobile number", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (password.isBlank()) {
+                            Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (finalDesignation.isBlank()) {
+                            Toast.makeText(context, "Please select or specify your designation *", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (nationality.isBlank()) {
+                            Toast.makeText(context, "Please enter your nationality *", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
                         onRegisterClick(
                             RegistrationRequest(
-                                firstName = firstName,
-                                lastName = lastName,
-                                phone = mobile,
+                                firstName = firstName.trim(),
+                                lastName = lastName.trim(),
+                                phone = mobile.trim(),
                                 email = email.ifBlank { null },
                                 password = password,
                                 state = selectedState,
@@ -138,7 +168,10 @@ fun RegistrationScreen(
                                 pincode = pincode,
                                 crop_interests = selectedCrops
                                     .map { it.replace(Regex("[^a-zA-Z0-9 ]"), "").trim() }
-                                    .toList()
+                                    .toList(),
+                                designation = finalDesignation,
+                                nationality = nationality.trim(),
+                                address = fullAddress.trim()
                             )
                         )
                     },
@@ -280,24 +313,98 @@ fun RegistrationScreen(
                                         color = Color(0xFF2E7D32)
                                     )
                                 }
-                               /* IconButton(
-                                    onClick = {
-                                        passwordVisible =
-                                            !passwordVisible
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector =
-                                            if (passwordVisible)
-                                                Icons.Default.Visibility
-                                            else
-                                                Icons.Default.VisibilityOff,
-                                        contentDescription =
-                                            "Toggle password visibility"
-                                    )
-                                }*/
                             }
                         )
+
+                        RoundedTextField(
+                            value = nationality,
+                            onValueChange = { nationality = it },
+                            label = "Nationality *"
+                        )
+
+                        RoundedTextField(
+                            value = fullAddress,
+                            onValueChange = { fullAddress = it },
+                            label = "Address"
+                        )
+                    }
+                }
+            }
+
+            // ------------------------------------------------
+            // DESIGNATION (MANDATORY)
+            // ------------------------------------------------
+
+            item {
+                Spacer(modifier = Modifier.height(18.dp))
+
+                SectionTitle(
+                    icon = "💼",
+                    title = "Designation *",
+                    subtitle = "Select your occupation"
+                )
+
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 1.dp
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val designationOptions = listOf(
+                            "Farmer",
+                            "Student",
+                            "Scientist",
+                            "Teacher",
+                            "Govt. employee",
+                            "Company owner",
+                            "Others"
+                        )
+
+                        designationOptions.forEach { option ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedDesignation = option }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = (selectedDesignation == option),
+                                    onCheckedChange = { checked ->
+                                        if (checked) selectedDesignation = option
+                                        else if (selectedDesignation == option) selectedDesignation = ""
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = Color(0xFF2E7D32)
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = option,
+                                    fontSize = 15.sp,
+                                    color = Color(0xFF263328)
+                                )
+                            }
+                        }
+
+                        if (selectedDesignation == "Others") {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            RoundedTextField(
+                                value = customDesignation,
+                                onValueChange = { customDesignation = it },
+                                label = "Specify your designation *"
+                            )
+                        }
                     }
                 }
             }

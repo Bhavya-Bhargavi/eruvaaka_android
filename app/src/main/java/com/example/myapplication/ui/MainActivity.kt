@@ -146,7 +146,7 @@ enum class MenuType {
     CONTACT_US,
     CATEGORY
 }
-
+private val AgricultureGreen = Color(0xFF237A43)
 val staticMenus = listOf(
     "Home",
     "Magazine",
@@ -653,7 +653,11 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             }
         )  {
 
-            Scaffold(
+            Scaffold( modifier = Modifier
+                .fillMaxWidth()
+                .background(AgricultureGreen)
+                .padding(horizontal = 20.dp, vertical = 22.dp)
+            ,
                 topBar = {
                     if (selectedArticle == null) TopAppBar(
                         title = { Text("Eruvaaka") },
@@ -662,11 +666,6 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 scope.launch { drawerState.open() }
                             }) {
                                 Icon(Icons.Default.Menu, contentDescription = "Menu")
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = { }) {
-                                Icon(Icons.Default.Search, contentDescription = "Search")
                             }
                         }
                     )
@@ -941,10 +940,16 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
 
                             ProfileScreen(
                                 viewModel = pProfileViewModel,
-                                onSave = { firstName, lastName, state, district, mandal, pincode, cropInterests ->
+                                onSave = { firstName, lastName, phone, email, postalAddress, address1, address2, state, district, mandal, pincode, cropInterests ->
                                     val request = UpdateProfileRequest(
                                         firstName = firstName,
                                         lastName = lastName,
+                                        phone = phone,
+                                        email = email,
+                                        address = postalAddress,
+                                        address1 = address1,
+                                        address2 = address2,
+                                        postalAddress = postalAddress,
                                         state = state,
                                         district = district,
                                         mandal = mandal,
@@ -1009,11 +1014,12 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 onArticleSelected = { article ->
                                     selectedArticle = article
                                 },
-                                onArticleBack = { selectedArticle = null }
+                                onArticleBack = { selectedArticle = null }, onSubscribeClick = {currentScreen= ScreenType.SUBSCRIPTION}
                             )
                         }
                         ScreenType.BOOKS -> {
-                            BooksScreen(bookViewModel)
+                            //BooksScreen(bookViewModel)
+                            BooksScreen()
                         }
                         ScreenType.FORUMS -> {
                             ForumsScreen(forumViewModel)
@@ -1568,9 +1574,8 @@ fun NewsFeed(
     selectedTab: Int,
     selectedArticleUrl: String?,
     onArticleSelected: (SelectedNewsArticle) -> Unit,
-    onArticleBack: () -> Unit
+    onArticleBack: () -> Unit, onSubscribeClick: () -> Unit
 ) {
-    val navController = rememberNavController()
     /*var selectedArticleUrl by remember {
         mutableStateOf<String?>(null)
     }*/
@@ -1773,14 +1778,18 @@ fun NewsFeed(
                                         )
                                     }
 
-                                    /*if (index == 2) {
-                                        SpecialOfferBanner(
-                                            title = "Get 20% OFF",
-                                            description = "on E-Magazine Subscription",
-                                            couponCode = "DEV25",
-                                            onSubscribeClick = onSubscribeClick
-                                        )
-                                    }*/
+
+                                }
+
+                                if (index == 2) {
+                                    SpecialOfferBanner(
+                                        title = "Get 20% OFF",
+                                        description = "on E-Magazine Subscription",
+                                        couponCode = "Save50",
+                                        onSubscribeClick = onSubscribeClick
+                                    )
+
+                                    //index =+ 2
                                 }
                             }
                         }
@@ -2947,12 +2956,12 @@ private fun getSubscriptionPlanId(
     years: Int
 ): String {
     return when (magazineType to years) {
-        "E-Magazine" to 1 -> "emagazine_monthly"
-        "E-Magazine" to 3 -> "e_magazine_3_year"
-        "E-Magazine" to 5 -> "e_magazine_5_year"
-        "Print Magazine" to 1 -> "print_magazine_1_year"
-        "Print Magazine" to 3 -> "print_magazine_3_year"
-        "Print Magazine" to 5 -> "print_magazine_5_year"
+        "E-Magazine" to 1 -> "emagazine_1year"
+        "E-Magazine" to 3 -> "e_magazine_3year"
+        "E-Magazine" to 5 -> "e_magazine_5year"
+        "Print Magazine" to 1 -> "print_magazine_1year"
+        "Print Magazine" to 3 -> "print_magazine_3year"
+        "Print Magazine" to 5 -> "print_magazine_5year"
         else -> error("Unsupported subscription plan")
     }
 }

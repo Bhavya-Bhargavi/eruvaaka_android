@@ -12,5 +12,8 @@ data class RegistrationRequest(
     @SerializedName("mandal") val mandal: String,
     @SerializedName("pincode") val pincode: String,
     @SerializedName("email") val email: String? = null,
-    @SerializedName("crop_interests") val crop_interests: List<String> = emptyList()
+    @SerializedName("crop_interests") val crop_interests: List<String> = emptyList(),
+    @SerializedName("designation") val designation: String? = null,
+    @SerializedName("nationality") val nationality: String? = null,
+    @SerializedName("address") val address: String? = null
 )
