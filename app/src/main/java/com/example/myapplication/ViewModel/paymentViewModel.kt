@@ -94,6 +94,14 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                 }
             } catch (exception: CancellationException) {
                 throw exception
+            } catch (exception: retrofit2.HttpException) {
+                val errBody = exception.response()?.errorBody()?.string()
+                Log.e("PaymentViewModel", "Coupon validation HTTP ${exception.code()}: $errBody", exception)
+                _errorMessage.value = if (!errBody.isNullOrBlank()) {
+                    "Coupon failed (${exception.code()}): $errBody"
+                } else {
+                    "Coupon validation failed (${exception.code()})"
+                }
             } catch (exception: Exception) {
                 Log.e(
                     "PaymentViewModel",
@@ -113,7 +121,8 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
         planId: String,
         couponCode: String = "",
         shippingAddress: String? = null,
-        isPrintMagazine: Boolean = false
+        isPrintMagazine: Boolean = false,
+        isCombo: Boolean = false
     ) {
         if (_isLoading.value) return
 
@@ -127,7 +136,7 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                     ?.takeIf { it.isNotBlank() }
                     ?: error("Session expired. Please login again.")
 
-                if (isPrintMagazine) {
+                if( (isPrintMagazine) || (isCombo) ) {
                     require(!shippingAddress.isNullOrBlank()) {
                         "Shipping address is required"
                     }
@@ -158,7 +167,7 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                     CreateOrderRequest(
                         plan = planId,
                         coupon_code = code.takeIf { it.isNotEmpty() },
-                        shipping_address = if (isPrintMagazine) {
+                        shipping_address = if ( (isPrintMagazine) || (isCombo) )  {
                             shippingAddress?.trim()
                         } else {
                             null
@@ -170,6 +179,14 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
 
             } catch (exception: CancellationException) {
                 throw exception
+            } catch (exception: retrofit2.HttpException) {
+                val errBody = exception.response()?.errorBody()?.string()
+                Log.e("PaymentViewModel", "Order creation HTTP ${exception.code()}: $errBody", exception)
+                _errorMessage.value = if (!errBody.isNullOrBlank()) {
+                    "Order failed (${exception.code()}): $errBody"
+                } else {
+                    "Order failed with HTTP ${exception.code()}"
+                }
             } catch (exception: Exception) {
                 Log.e(
                     "PaymentViewModel",

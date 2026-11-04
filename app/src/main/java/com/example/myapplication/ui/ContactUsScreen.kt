@@ -92,11 +92,10 @@ fun ContactUsScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Spacer(modifier = Modifier.height(30.dp))
 
-                Box(
+                /*Box(
                     modifier = Modifier
-                        .size(80.dp)
+                        .size(30.dp)
                         .clip(CircleShape)
                         .background(Color(0xFFE8F5E9)),
                     contentAlignment = Alignment.Center
@@ -104,7 +103,7 @@ fun ContactUsScreen(
                     Text(text = "📞", fontSize = 40.sp)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(5.dp))*/
 
                 Text(
                     text = "Contact Us",

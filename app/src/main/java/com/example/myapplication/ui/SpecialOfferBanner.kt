@@ -30,7 +30,7 @@ private val OfferYellow = Color(0xFFFFD65A)
 @Composable
 fun SpecialOfferBanner(
     modifier: Modifier = Modifier,
-    title: String = "Get 20% OFF",
+    title: String = "Get 25% OFF",
     description: String = "on E-Magazine Subscription",
     couponCode: String = "DEV25",
     onSubscribeClick: () -> Unit
