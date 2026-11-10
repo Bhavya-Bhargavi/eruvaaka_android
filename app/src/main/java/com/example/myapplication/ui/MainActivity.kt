@@ -104,7 +104,11 @@ import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Newspaper
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Work
+import com.example.myapplication.ViewModel.JobViewModel
+import com.example.myapplication.ViewModel.ProductViewModel
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -161,7 +165,7 @@ val staticMenus = listOf(
 enum class ScreenType {
     HOME,
     SUBSCRIPTION,
-    CONTACTUS,PROFILE,PDF_VIEWER,E_PAPER_VIEWER,NEWS,BOOKS,FORUMS
+    CONTACTUS,PROFILE,PDF_VIEWER,E_PAPER_VIEWER,NEWS,BOOKS,FORUMS,PRODUCTS,JOBS
 }
 
 val gridMenuItems = listOf(
@@ -189,6 +193,16 @@ val gridMenuItems = listOf(
         title = "Forums",
         icon = Icons.Default.Forum,
         backgroundColor = Color(0xFFFFF3E0)
+    ),
+    EruvaakaMenu(
+        title = "Products",
+        icon = Icons.Default.ShoppingBag,
+        backgroundColor = Color(0xFFEFEBE9)
+    ),
+    EruvaakaMenu(
+        title = "Jobs",
+        icon = Icons.Default.Work,
+        backgroundColor = Color(0xFFE1F5FE)
     )
 )
 
@@ -221,6 +235,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
     private val mediaViewModel: MediaViewModel by viewModels()
     private val bookViewModel: BookViewModel by viewModels()
     private val forumViewModel: ForumViewModel by viewModels()
+    private val productViewModel: ProductViewModel by viewModels()
+    private val jobViewModel: JobViewModel by viewModels()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -474,6 +490,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 ScreenType.FORUMS -> "Forums"
                 ScreenType.PDF_VIEWER -> "Magazine"
                 ScreenType.E_PAPER_VIEWER -> "E-Paper"
+                ScreenType.PRODUCTS -> "Products"
+                ScreenType.JOBS -> "Jobs"
             }
         }
 
@@ -820,6 +838,14 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                             "Forums" -> {
                                                 currentScreen = ScreenType.FORUMS
                                             }
+
+                                            "Products" -> {
+                                                currentScreen = ScreenType.PRODUCTS
+                                            }
+
+                                            "Jobs" -> {
+                                                currentScreen = ScreenType.JOBS
+                                            }
                                         }
                                     }
                                 )
@@ -1023,6 +1049,15 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                         }
                         ScreenType.FORUMS -> {
                             ForumsScreen(forumViewModel)
+                        }
+                        ScreenType.PRODUCTS -> {
+                            ProductsScreen(
+                                productViewModel = productViewModel,
+                                onSubscribeClick = { currentScreen = ScreenType.SUBSCRIPTION }
+                            )
+                        }
+                        ScreenType.JOBS -> {
+                            JobsScreen(jobViewModel = jobViewModel)
                         }
                     }
                 }
@@ -2528,31 +2563,50 @@ fun EruvaakaMenuGrid(onMenuClick: (String) -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Second row - 2 centered items
+                // Second row - 3 items
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    MenuCard(
+                        item = gridMenuItems[3],
+                        modifier = Modifier.weight(1f),
+                        onClick = onMenuClick
+                    )
+
+                    MenuCard(
+                        item = gridMenuItems[4],
+                        modifier = Modifier.weight(1f),
+                        onClick = onMenuClick
+                    )
+
+                    MenuCard(
+                        item = gridMenuItems[5],
+                        modifier = Modifier.weight(1f),
+                        onClick = onMenuClick
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Third row - Jobs
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
 
                     MenuCard(
-                        item = gridMenuItems[3],
+                        item = gridMenuItems[6],
                         modifier = Modifier
                             .weight(1f)
                             .padding(end = 4.dp),
                         onClick = onMenuClick
                     )
 
-                    MenuCard(
-                        item = gridMenuItems[4],
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 4.dp),
-                        onClick = onMenuClick
-                    )
-
                     Spacer(
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(2f)
                     )
                 }
             }

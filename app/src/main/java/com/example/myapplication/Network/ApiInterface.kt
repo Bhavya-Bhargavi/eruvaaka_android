@@ -16,8 +16,11 @@ import com.example.myapplication.Model.Response.BookResponse
 import com.example.myapplication.Model.Response.ContactResponse
 import com.example.myapplication.Model.Response.CreateOrderResponse
 import com.example.myapplication.Model.Response.ForumResponse
+import com.example.myapplication.Model.Response.JobResponse
 import com.example.myapplication.Model.Response.LoginResponse
 import com.example.myapplication.Model.Response.NewsResponse
+import com.example.myapplication.Model.Response.OfferResponse
+import com.example.myapplication.Model.Response.ProductResponse
 import com.example.myapplication.Model.Response.RegistrationResponse
 import com.example.myapplication.Model.Response.ValidateCouponResponse
 import com.example.myapplication.Model.Response.VerifyPaymentResponse
@@ -176,4 +179,16 @@ interface ApiInterface {
         @Path("forumId") forumId: Int,
         @Body request: CommentRequest
     ): Response<JsonElement>
+
+    @GET("api/products")
+    suspend fun getProducts(): Response<ProductResponse>
+
+    @GET("api/offers/active")
+    suspend fun getActiveOffers(): Response<OfferResponse>
+
+    @GET("api/jobs")
+    suspend fun getJobs(): Response<JobResponse>
+
+    @GET("api/jobs/{jobId}")
+    suspend fun getJobDetails(@Path("jobId") jobId: Int): Response<JsonElement>
 }
