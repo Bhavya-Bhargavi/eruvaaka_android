@@ -4,8 +4,7 @@ package com.example.myapplication.Model.Request
 
 
 data class CreateOrderRequest(
-    val plan: String,
-    val coupon_code: String? = null,
+    val plan: String,val coupon_code: String? = null,
     val shipping_address: String? = null
 )
 

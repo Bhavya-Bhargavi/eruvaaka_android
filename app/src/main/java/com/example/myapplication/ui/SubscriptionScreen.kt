@@ -55,7 +55,6 @@ data class SubscriptionPlan(
 
 data class ShippingAddress(
     val fullName: String,
-    val mobile: String,
     val addressLine: String,
     val landmark: String,
     val city: String,
@@ -96,7 +95,7 @@ fun SubscriptionScreen(
 
     var couponCode by remember { mutableStateOf("") }
     var fullName by remember { mutableStateOf("") }
-    var mobile by remember { mutableStateOf("") }
+    //var mobile by remember { mutableStateOf("") }
     var addressLine by remember { mutableStateOf("") }
     var landmark by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
@@ -334,7 +333,7 @@ fun SubscriptionScreen(
         }
 
         // Shipping address is required only for print subscriptions.
-        if (selectedType == "Print Magazine") {
+        if (selectedType == "Print Magazine" || selectedType == "Combo") {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Shipping Address",
@@ -344,10 +343,10 @@ fun SubscriptionScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
 
-            AddressTextField("Full Address", fullName) { fullName = it }
-            AddressTextField("Mobile number", mobile) { value ->
+            AddressTextField("Full Name", fullName) { fullName = it }
+            /*AddressTextField("Mobile number", mobile) { value ->
                 mobile = value.filter(Char::isDigit).take(10)
-            }
+            }*/
             AddressTextField("House no. / Street / Address", addressLine) { addressLine = it }
             AddressTextField("Landmark (optional)", landmark) { landmark = it }
             AddressTextField("City / District", city) { city = it }
@@ -365,10 +364,9 @@ fun SubscriptionScreen(
 
         Button(
             onClick = {
-                val shippingAddress = if (selectedType == "Print Magazine") {
+                val shippingAddress = if((selectedType == "Print Magazine") || (selectedType == "Combo")) {
                     if (
                         fullName.isBlank() ||
-                        mobile.length != 10 ||
                         addressLine.isBlank() ||
                         city.isBlank() ||
                         state.isBlank() ||
@@ -378,7 +376,6 @@ fun SubscriptionScreen(
                     } else {
                         ShippingAddress(
                             fullName = fullName.trim(),
-                            mobile = mobile,
                             addressLine = addressLine.trim(),
                             landmark = landmark.trim(),
                             city = city.trim(),
@@ -391,7 +388,7 @@ fun SubscriptionScreen(
                 }
 
                 val addressIsValid =
-                    selectedType != "Print Magazine" || shippingAddress != null
+                    selectedType != "E-Magazine" ||  shippingAddress != null
 
                 if (addressIsValid) {
                     onSubscribe(
@@ -531,6 +528,15 @@ fun MagazineTypeTabs(
             selected = selectedType == "Print Magazine",
             onClick = {
                 onTypeSelected("Print Magazine")
+            },
+            modifier = Modifier.weight(1f)
+        )
+
+        MagazineTab(
+            title = "Combo(E + Print Magazine)",
+            selected = selectedType == "Combo",
+            onClick = {
+                onTypeSelected("Combo")
             },
             modifier = Modifier.weight(1f)
         )

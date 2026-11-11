@@ -121,7 +121,8 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
         planId: String,
         couponCode: String = "",
         shippingAddress: String? = null,
-        isPrintMagazine: Boolean = false
+        isPrintMagazine: Boolean = false,
+        isCombo: Boolean = false
     ) {
         if (_isLoading.value) return
 
@@ -135,7 +136,7 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                     ?.takeIf { it.isNotBlank() }
                     ?: error("Session expired. Please login again.")
 
-                if (isPrintMagazine) {
+                if( (isPrintMagazine) || (isCombo) ) {
                     require(!shippingAddress.isNullOrBlank()) {
                         "Shipping address is required"
                     }
@@ -166,7 +167,7 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                     CreateOrderRequest(
                         plan = planId,
                         coupon_code = code.takeIf { it.isNotEmpty() },
-                        shipping_address = if (isPrintMagazine) {
+                        shipping_address = if ( (isPrintMagazine) || (isCombo) )  {
                             shippingAddress?.trim()
                         } else {
                             null

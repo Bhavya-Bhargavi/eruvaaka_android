@@ -133,6 +133,8 @@ import kotlinx.coroutines.flow.first
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Archive
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.ui.ShippingAddress
 
@@ -158,12 +160,13 @@ val staticMenus = listOf(
     "Contact Us",
     "Profile",
     "Books",
+    "Jobs",
     "Forums",
     "Logout"
 )
 
 enum class ScreenType {
-    HOME,
+    HOME,EMAGAZINE,
     SUBSCRIPTION,
     CONTACTUS,PROFILE,PDF_VIEWER,E_PAPER_VIEWER,NEWS,BOOKS,FORUMS,PRODUCTS,JOBS
 }
@@ -194,6 +197,8 @@ val gridMenuItems = listOf(
         icon = Icons.Default.Forum,
         backgroundColor = Color(0xFFFFF3E0)
     ),
+    EruvaakaMenu(
+        title = "Products",
     EruvaakaMenu(
         title = "Products",
         icon = Icons.Default.ShoppingBag,
@@ -488,6 +493,10 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                 ScreenType.BOOKS -> "Books"
                 ScreenType.NEWS -> "News"
                 ScreenType.FORUMS -> "Forums"
+                ScreenType.PRODUCTS -> "Products"
+                ScreenType.JOBS -> "Jobs"
+
+                ScreenType.EMAGAZINE -> "Magazine"
                 ScreenType.PDF_VIEWER -> "Magazine"
                 ScreenType.E_PAPER_VIEWER -> "E-Paper"
                 ScreenType.PRODUCTS -> "Products"
@@ -630,6 +639,8 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             "Profile" -> currentScreen = ScreenType.PROFILE
                             "Books" -> currentScreen = ScreenType.BOOKS
                             "Forums" -> currentScreen = ScreenType.FORUMS
+                            "Products" -> currentScreen = ScreenType.PRODUCTS
+                            "Jobs" -> currentScreen = ScreenType.JOBS
                             "Logout" -> {
                                 Toast.makeText(context, "Logging out...", Toast.LENGTH_SHORT).show()
                                 loginViewModel.logout {
@@ -671,14 +682,12 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
             }
         )  {
 
-            Scaffold( modifier = Modifier
-                .fillMaxWidth()
-                .background(AgricultureGreen)
-                .padding(horizontal = 20.dp, vertical = 22.dp)
-            ,
+            Scaffold(
                 topBar = {
                     if (selectedArticle == null) TopAppBar(
-                        title = { Text("Eruvaaka") },
+                        title = { Text("Eruvaaka")}, modifier = Modifier
+                            .fillMaxWidth()
+                                .background(AgricultureGreen),
                         navigationIcon = {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
@@ -785,11 +794,12 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                             "Magazine" -> {
                                                 // Navigate to Magazine
                                                 scope.launch {
+                                                    val subscribed = true
 
-                                                    val subscribed =
-                                                        userPreferences.isSubscribed.first()
+                                                    //val subscribed =
+                                                        //userPreferences.isSubscribed.first() //temp
 
-                                                    if (subscribed) {
+                                                    /*if (subscribed) {
                                                         val storage = MagazineStorage(context)
                                                         if (storage.isMagazineDownloaded("eru_vaaka_latest.pdf")) {
                                                             currentScreen = ScreenType.PDF_VIEWER
@@ -802,6 +812,12 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                                             val token = userPreferences.getToken() ?: ""
                                                             mediaViewModel.downloadEMagazine(token = token, context = context)
                                                         }
+                                                    } else {
+                                                        currentScreen = ScreenType.SUBSCRIPTION
+                                                    }*/
+
+                                                    if (subscribed) {
+                                                        currentScreen = ScreenType.EMAGAZINE
                                                     } else {
                                                         currentScreen = ScreenType.SUBSCRIPTION
                                                     }
@@ -862,6 +878,47 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 // The selected article replaces this dashboard content.
                             }
                         }
+                        ScreenType.EMAGAZINE ->{
+                            Log.e("magazine","list")
+
+                            EMagazineScreen(
+                                magazines = magazineList,
+
+                                onDownloadMagazine = { magazine ->
+                                    scope.launch {
+                                        val token = userPreferences.getToken() ?: ""
+
+                                        if (token.isBlank()) {
+                                            Toast.makeText(
+                                                context,
+                                                "Please log in to download the magazine",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+
+                                            return@launch
+                                        }
+
+                                        Toast.makeText(
+                                            context,
+                                            "Downloading magazine...",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        // Use your existing download implementation.
+                                        mediaViewModel.downloadEMagazine(
+                                            token = token,
+                                            publicationId = magazine.id.toIntOrNull() ?: 1,
+                                            context = context
+                                        )
+                                    }
+                                },
+
+                                onOpenPdf = { file ->
+                                    currentScreen = ScreenType.PDF_VIEWER
+                                }
+                            )
+
+                        }
 
 
                         ScreenType.SUBSCRIPTION -> {
@@ -891,17 +948,17 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                 onSubscribe = { magazineType, plan, couponCode, address ->
 
                                     val isPrintMagazine = magazineType == "Print Magazine"
+                                    val isCombo = magazineType == "Combo"
 
                                     val planId = getSubscriptionPlanId(
                                         magazineType,
                                         plan.years
                                     )
 
-                                    val shippingAddress = if (isPrintMagazine) {
+                                    val shippingAddress = if ((isPrintMagazine) || (isCombo)) {
                                         address?.let {
                                             listOf(
                                                 it.fullName,
-                                                it.mobile,
                                                 it.addressLine,
                                                 it.landmark,
                                                 it.city,
@@ -914,15 +971,23 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                     } else {
                                         null
                                     }
-
+Log.e("shippingAddress", shippingAddress.toString())
                                     pPaymentViewModel.createOrder(
                                         planId = planId,
                                         couponCode = couponCode,
                                         shippingAddress = shippingAddress,
-                                        isPrintMagazine = isPrintMagazine
+                                        isPrintMagazine = isPrintMagazine, isCombo
                                     )
                                 }
                             )
+                        }
+                        ScreenType.PRODUCTS ->
+                        {
+
+                        }
+                        ScreenType.JOBS ->
+                        {
+
                         }
 
                         ScreenType.CONTACTUS -> {
@@ -1044,8 +1109,9 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                             )
                         }
                         ScreenType.BOOKS -> {
-                            //BooksScreen(bookViewModel)
+                        ScreenType.BOOKS -> {
                             BooksScreen()
+                        }
                         }
                         ScreenType.FORUMS -> {
                             ForumsScreen(forumViewModel)
@@ -2608,7 +2674,28 @@ fun EruvaakaMenuGrid(onMenuClick: (String) -> Unit) {
                         modifier = Modifier
                             .weight(2f)
                     )
+                    )
+
+
                 }
+                Spacer(
+                    modifier = Modifier
+                        .weight(1f)
+                )
+                /*// third row - 2 centered items
+                Row(
+                    modifier = Modifier.wrapContentSize(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    MenuCard(
+                        item = gridMenuItems[6],
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(end = 4.dp),
+                        onClick = onMenuClick
+                    )
+                }*/
             }
         }
     }
@@ -3011,11 +3098,15 @@ private fun getSubscriptionPlanId(
 ): String {
     return when (magazineType to years) {
         "E-Magazine" to 1 -> "emagazine_1year"
-        "E-Magazine" to 3 -> "e_magazine_3year"
-        "E-Magazine" to 5 -> "e_magazine_5year"
+        "E-Magazine" to 1 -> "emagazine_1year"
+        "E-Magazine" to 3 -> "emagazine_3year"
+        "E-Magazine" to 5 -> "emagazine_5year"
         "Print Magazine" to 1 -> "print_magazine_1year"
         "Print Magazine" to 3 -> "print_magazine_3year"
         "Print Magazine" to 5 -> "print_magazine_5year"
+        "Combo" to 1 -> "combo_1year"
+        "Combo" to 3 -> "combo_3year"
+        "Combo" to 5 -> "combo_5year"
         else -> error("Unsupported subscription plan")
     }
 }
