@@ -199,8 +199,6 @@ val gridMenuItems = listOf(
     ),
     EruvaakaMenu(
         title = "Products",
-    EruvaakaMenu(
-        title = "Products",
         icon = Icons.Default.ShoppingBag,
         backgroundColor = Color(0xFFEFEBE9)
     ),
@@ -1109,9 +1107,7 @@ Log.e("shippingAddress", shippingAddress.toString())
                             )
                         }
                         ScreenType.BOOKS -> {
-                        ScreenType.BOOKS -> {
                             BooksScreen()
-                        }
                         }
                         ScreenType.FORUMS -> {
                             ForumsScreen(forumViewModel)
@@ -2674,9 +2670,6 @@ fun EruvaakaMenuGrid(onMenuClick: (String) -> Unit) {
                         modifier = Modifier
                             .weight(2f)
                     )
-                    )
-
-
                 }
                 Spacer(
                     modifier = Modifier
