@@ -956,7 +956,7 @@ class MainActivity : ComponentActivity(), PaymentResultWithDataListener {
                                     }
 Log.e("shippingAddress", shippingAddress.toString())
                                     pPaymentViewModel.createOrder(
-                                        planId = planId,
+                                        planId = planId,bookId = null,
                                         couponCode = couponCode,
                                         shippingAddress = shippingAddress,
                                         isPrintMagazine = isPrintMagazine, isCombo
@@ -1092,8 +1092,8 @@ Log.e("shippingAddress", shippingAddress.toString())
                             )
                         }
                         ScreenType.BOOKS -> {
-                            BooksScreen()
-                            /*BooksScreen(
+                            //BooksScreen()
+                            BooksScreen(
                                 onBuyBook = { book ->
                                     val bookId = book.id
 
@@ -1101,7 +1101,7 @@ Log.e("shippingAddress", shippingAddress.toString())
 
                                     // Pass bookId to your existing order-creation logic.
                                     pPaymentViewModel.createOrder(
-                                        planId = bookId.toString())
+                                        bookId = bookId)
                                 },
 
                                 onReadBook = { book ->
@@ -1113,7 +1113,7 @@ Log.e("shippingAddress", shippingAddress.toString())
                                     // If purchased, open its PDF.
                                     // Otherwise, show book details and the Buy button.
                                 }
-                            )*/
+                            )
 
 
                         }

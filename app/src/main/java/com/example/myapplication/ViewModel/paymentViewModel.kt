@@ -117,8 +117,8 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
     }
 
 
-    fun createOrder(
-        planId: String,
+    fun createOrder(planId: String? = null,
+                    bookId: Int? = null,
         couponCode: String = "",
         shippingAddress: String? = null,
         isPrintMagazine: Boolean = false,
@@ -166,6 +166,7 @@ class paymentViewModel(application: Application) : AndroidViewModel(application)
                     "Bearer $token",
                     CreateOrderRequest(
                         plan = planId,
+                        book_id = bookId,
                         coupon_code = code.takeIf { it.isNotEmpty() },
                         shipping_address = if ( (isPrintMagazine) || (isCombo) )  {
                             shippingAddress?.trim()

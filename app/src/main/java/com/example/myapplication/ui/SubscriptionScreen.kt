@@ -364,7 +364,34 @@ fun SubscriptionScreen(
 
         Button(
             onClick = {
-                val shippingAddress = if((selectedType == "Print Magazine") || (selectedType == "Combo")) {
+                /*val shippingAddress = if((selectedType == "Print Magazine") || (selectedType == "Combo")) {
+                    if (
+                        fullName.isBlank() ||
+                        addressLine.isBlank() ||
+                        city.isBlank() ||
+                        state.isBlank() ||
+                        pincode.length != 6
+                    ) {
+                        null
+                    } else {
+                        ShippingAddress(
+                            fullName = fullName.trim(),
+                            addressLine = addressLine.trim(),
+                            landmark = landmark.trim(),
+                            city = city.trim(),
+                            state = state.trim(),
+                            pincode = pincode
+                        )
+                    }
+                } else {
+                    null
+                }*/
+
+                val requiresShipping =
+                    selectedType == "Print Magazine" ||
+                            selectedType == "Combo"
+
+                val shippingAddress = if (requiresShipping) {
                     if (
                         fullName.isBlank() ||
                         addressLine.isBlank() ||
@@ -388,7 +415,7 @@ fun SubscriptionScreen(
                 }
 
                 val addressIsValid =
-                    selectedType != "E-Magazine" ||  shippingAddress != null
+                    !requiresShipping || shippingAddress != null
 
                 if (addressIsValid) {
                     onSubscribe(

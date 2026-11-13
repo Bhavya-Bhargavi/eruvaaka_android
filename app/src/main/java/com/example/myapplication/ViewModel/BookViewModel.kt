@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.Model.Request.CreateOrderRequest
 import com.example.myapplication.Model.Response.BookResponse
 import com.example.myapplication.Network.RetrofitClient
+import com.example.myapplication.Network.RetrofitClient.pApiInterface
 import com.example.myapplication.Repository.BookRepository
 import com.google.gson.JsonElement
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,16 +34,17 @@ class BookViewModel : ViewModel() {
         }
     }
 
-    /*fun createBookOrder(bookId: Int) {
+    /*fun createBookOrder(bookId: Int, token: String) {
         viewModelScope.launch {
+
+
             try {
                 val request = CreateOrderRequest(
-                    purchase_type = "book",
                     book_id = bookId
                 )
 
                 // Use your existing create-order API
-                val response = pApiInterface.createOrder(request)
+                val response = pApiInterface.createOrder("Bearer $token",request)
 
                 if (response.isSuccessful) {
                     val result = response.body()
